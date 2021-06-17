@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.github.bstartweaks">
+
+    <application
+        android:allowBackup="false"
+        android:label="bstar 工具箱"
+        android:supportsRtl="true"
+        tools:ignore="MissingApplicationIcon">
+
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="为东南亚 bilibili 应用添加小功能" />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="82" />
+        <meta-data
+            android:name="xposedscope"
+            android:resource="@array/module_scope" />
+        <meta-data
+            android:name="xposedsharedprefs"
+            android:value="true" />
+    </application>
+
+</manifest>

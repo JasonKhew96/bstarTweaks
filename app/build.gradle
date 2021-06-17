@@ -1,0 +1,81 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+def versionMajor = 1
+def versionMinor = 8
+def versionPatch = 0
+def versionBuild = 0 // bump for dogfood builds, public betas, etc.
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId "com.github.bstartweaks"
+        minSdkVersion 17
+        targetSdkVersion 30
+        versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
+        versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}"
+        archivesBaseName = "$applicationId-v$versionName"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            multiDexEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    packagingOptions {
+        exclude 'META-INF/**'
+        exclude 'kotlin/**'
+        exclude 'google/**'
+        exclude '**.bin'
+    }
+
+    aaptOptions {
+        additionalParameters "--preferred-density", "xxxhdpi"
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+    }
+
+    dependenciesInfo {
+        includeInApk false
+        includeInBundle false
+    }
+}
+
+dependencies {
+    // Xposed
+    compileOnly 'de.robv.android.xposed:api:82'
+    compileOnly 'de.robv.android.xposed:api:82:sources'
+}
+
+afterEvaluate {
+    installDebug.doLast {
+        restartBiliBili()
+    }
+}
+
+def restartBiliBili() {
+    exec {
+        commandLine android.adbExecutable, 'shell', 'am', 'force-stop', 'com.bstar.intl'
+    }
+    exec {
+        commandLine android.adbExecutable, 'shell', 'monkey', '-p', 'com.bstar.intl', '1'
+    }
+}
