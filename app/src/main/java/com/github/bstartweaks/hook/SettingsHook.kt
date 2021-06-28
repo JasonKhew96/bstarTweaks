@@ -73,8 +73,8 @@ class SettingsHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
 
     companion object {
         fun findMap(): String? {
-            if (MethodMaps.help.containsKey(XposedInit.versionCodeStr)) {
-                return MethodMaps.help[XposedInit.versionCodeStr]
+            if (MethodMaps.help.containsKey(XposedInit.getMajorVersionCodeStr())) {
+                return MethodMaps.help[XposedInit.getMajorVersionCodeStr()]
             }
             return MethodMaps.help["fall"]
         }

@@ -80,6 +80,10 @@ class XposedInit : IXposedHookLoadPackage {
                 })
         }
 
+        fun getMajorVersionCodeStr(): String {
+            return versionCodeStr.substring(0, 4)
+        }
+
         private fun getAppVersionCode(context: Context): Int {
             return try {
                 val packageInfo: PackageInfo =

@@ -154,14 +154,14 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
 
     companion object {
         fun findCopyMap(): Pair<String, String>? {
-            if (ClassMaps.copy.containsKey(XposedInit.versionCodeStr)) {
-                return ClassMaps.copy[XposedInit.versionCodeStr]
+            if (ClassMaps.copy.containsKey(XposedInit.getMajorVersionCodeStr())) {
+                return ClassMaps.copy[XposedInit.getMajorVersionCodeStr()]
             }
             return ClassMaps.copy["fall"]
         }
         fun findToastMap(): Pair<String, String>? {
-            if (ClassMaps.toast.containsKey(XposedInit.versionCodeStr)) {
-                return ClassMaps.toast[XposedInit.versionCodeStr]
+            if (ClassMaps.toast.containsKey(XposedInit.getMajorVersionCodeStr())) {
+                return ClassMaps.toast[XposedInit.getMajorVersionCodeStr()]
             }
             return ClassMaps.toast["fall"]
         }

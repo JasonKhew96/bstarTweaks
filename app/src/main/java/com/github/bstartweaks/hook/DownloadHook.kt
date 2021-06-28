@@ -39,14 +39,14 @@ class DownloadHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     }
     companion object {
         fun findMap(): Pair<String, String>? {
-            if (ClassMaps.download.containsKey(XposedInit.versionCodeStr)) {
-                return ClassMaps.download[XposedInit.versionCodeStr]
+            if (ClassMaps.download.containsKey(XposedInit.getMajorVersionCodeStr())) {
+                return ClassMaps.download[XposedInit.getMajorVersionCodeStr()]
             }
             return ClassMaps.download["fall"]
         }
         fun findToastMap(): Pair<String, String>? {
-            if (ClassMaps.toast.containsKey(XposedInit.versionCodeStr)) {
-                return ClassMaps.toast[XposedInit.versionCodeStr]
+            if (ClassMaps.toast.containsKey(XposedInit.getMajorVersionCodeStr())) {
+                return ClassMaps.toast[XposedInit.getMajorVersionCodeStr()]
             }
             return ClassMaps.toast["fall"]
         }
