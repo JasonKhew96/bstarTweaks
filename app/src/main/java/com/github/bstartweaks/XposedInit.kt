@@ -54,7 +54,7 @@ class XposedInit : IXposedHookLoadPackage {
                         startHook(InfoHook(classLoader))
                         startHook(SimHook(classLoader))
                         startHook(LocaleHook(classLoader))
-//                        startHook(FullscreenHook(classLoader))
+                        startHook(PrivacyHook(classLoader))
 
                         val forceAllowDownload = prefs.getBoolean("force_allow_download", false)
                         if (forceAllowDownload) {
@@ -69,6 +69,11 @@ class XposedInit : IXposedHookLoadPackage {
                         val cleanShareUrl = prefs.getBoolean("clean_share_url", false)
                         if (cleanShareUrl) {
                             startHook(ShareHook(classLoader))
+                        }
+
+                        val privacyMode = prefs.getBoolean("privacy_mode", false)
+                        if (privacyMode) {
+                            startHook(PrivacyHook(classLoader))
                         }
                     }
 

@@ -63,6 +63,13 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
             }
             screen.addPreference(prefCleanShareUrl)
 
+            val prefPrivacyMode = SwitchPreference(screen.context).apply {
+                title = "隐私模式(试验)"
+                key = "privacy_mode"
+                summary = "禁止对服务器发送 buvid"
+            }
+            screen.addPreference(prefPrivacyMode)
+
             prefs = preferenceManager.sharedPreferences
         }
 
