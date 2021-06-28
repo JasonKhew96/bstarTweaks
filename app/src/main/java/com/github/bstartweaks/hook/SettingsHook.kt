@@ -73,10 +73,10 @@ class SettingsHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
 
     companion object {
         fun findMap(): String? {
-            if (MethodMaps.help.containsKey(XposedInit.versionCode)) {
-                return MethodMaps.help[XposedInit.versionCode]
+            if (MethodMaps.help.containsKey(XposedInit.versionCodeStr)) {
+                return MethodMaps.help[XposedInit.versionCodeStr]
             }
-            return MethodMaps.help.maxByOrNull { p-> p.key }?.value
+            return MethodMaps.help["fall"]
         }
     }
 }

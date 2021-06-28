@@ -39,10 +39,10 @@ class LocaleHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     }
     companion object {
         fun findMap(): Pair<String, String>? {
-            if (ClassMaps.locale.containsKey(XposedInit.versionCode)) {
-                return ClassMaps.locale[XposedInit.versionCode]
+            if (ClassMaps.locale.containsKey(XposedInit.versionCodeStr)) {
+                return ClassMaps.locale[XposedInit.versionCodeStr]
             }
-            return ClassMaps.locale.maxByOrNull { p-> p.key }?.value
+            return ClassMaps.locale["fall"]
         }
     }
 }

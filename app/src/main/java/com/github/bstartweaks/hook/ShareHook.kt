@@ -19,10 +19,10 @@ class ShareHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
 
     companion object {
         fun findMap(): Pair<String, String>? {
-            if (ClassMaps.share.containsKey(XposedInit.versionCode)) {
-                return ClassMaps.share[XposedInit.versionCode]
+            if (ClassMaps.share.containsKey(XposedInit.versionCodeStr)) {
+                return ClassMaps.share[XposedInit.versionCodeStr]
             }
-            return ClassMaps.share.maxByOrNull { p-> p.key }?.value
+            return ClassMaps.share["fall"]
         }
     }
 }
