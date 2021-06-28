@@ -11,9 +11,9 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 18000,
-      "versionName": "1.8.0.0",
-      "outputFile": "com.github.bstartweaks-v1.8.0.0-release.apk"
+      "versionCode": 18100,
+      "versionName": "1.8.1.0",
+      "outputFile": "com.github.bstartweaks-v1.8.1.0-release.apk"
     }
   ],
   "elementType": "File"

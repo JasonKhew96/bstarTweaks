@@ -54,7 +54,6 @@ class XposedInit : IXposedHookLoadPackage {
                         startHook(InfoHook(classLoader))
                         startHook(SimHook(classLoader))
                         startHook(LocaleHook(classLoader))
-                        startHook(PrivacyHook(classLoader))
 
                         val forceAllowDownload = prefs.getBoolean("force_allow_download", false)
                         if (forceAllowDownload) {
