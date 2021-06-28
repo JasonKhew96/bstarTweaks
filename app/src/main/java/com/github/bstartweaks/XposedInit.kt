@@ -22,6 +22,7 @@ class XposedInit : IXposedHookLoadPackage {
         lateinit var classLoader: ClassLoader
         lateinit var processName: String
         var versionCode: Int = 0
+        var versionCodeStr: String = ""
 
         fun handleBstar() {
             log("hook bstar")
@@ -36,6 +37,8 @@ class XposedInit : IXposedHookLoadPackage {
 
                         val currentContext = appParam.args[0] as Context
                         versionCode = getAppVersionCode(currentContext)
+                        versionCodeStr = versionCode.toString()
+
                         val prefs = currentContext.getSharedPreferences(
                             "bstar_tweaks",
                             Context.MODE_PRIVATE
