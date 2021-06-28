@@ -1,7 +1,7 @@
-package com.github.bstartweaks
+package com.github.bstartweaks.hook
 
 import android.telephony.TelephonyManager
-import com.github.bstartweaks.hook.BaseHook
+import com.github.bstartweaks.XposedInit
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedHelpers
 
