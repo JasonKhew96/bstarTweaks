@@ -79,8 +79,8 @@ class XposedInit : IXposedHookLoadPackage {
                 })
         }
 
-        fun getMajorVersionCodeStr(): String {
-            return versionCodeStr.substring(0, 4)
+        fun getMajorVersionCode(): Int {
+            return Integer.parseInt(versionCodeStr.substring(0, 4))
         }
 
         private fun getAppVersionCode(context: Context): Int {
