@@ -2,19 +2,24 @@ package com.github.bstartweaks.hook
 
 import com.github.bstartweaks.ClassMaps
 import com.github.bstartweaks.XposedInit
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedHelpers
+import com.github.kyuubiran.ezxhelper.utils.findMethodByCondition
+import com.github.kyuubiran.ezxhelper.utils.hookReplace
 
 class ShareHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
         XposedInit.log("startHook: ShareHook")
         val mapData = findMap() ?: throw NoClassDefFoundError("startHook: ShareHook failed")
         val refClazz = mClassLoader.loadClass(mapData.first)
-        XposedHelpers.findAndHookMethod(refClazz, mapData.second, String::class.java, String::class.java, object : XC_MethodReplacement() {
-            override fun replaceHookedMethod(param: MethodHookParam): Any {
-                return param.args[1]
+
+        findMethodByCondition(refClazz) {
+            it.name == mapData.second && it.parameterTypes.size == 2 &&
+                    it.parameterTypes[0] == String::class.java &&
+                    it.parameterTypes[1] == String::class.java
+        }.also { m ->
+            m.hookReplace { param ->
+                param.args[1]
             }
-        })
+        }
     }
 
     companion object {
@@ -22,7 +27,7 @@ class ShareHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
             if (ClassMaps.share.containsKey(XposedInit.getMajorVersionCode())) {
                 return ClassMaps.share[XposedInit.getMajorVersionCode()]
             }
-            return ClassMaps.share.maxByOrNull { p-> p.key }?.value
+            return ClassMaps.share.maxByOrNull { p -> p.key }?.value
         }
     }
 }

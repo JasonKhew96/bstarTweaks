@@ -8,11 +8,11 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.util.Log
 import com.github.bstartweaks.hook.*
+import com.github.kyuubiran.ezxhelper.init.EzXHelperInit
+import com.github.kyuubiran.ezxhelper.utils.findMethodByCondition
+import com.github.kyuubiran.ezxhelper.utils.hookAfter
 import de.robv.android.xposed.IXposedHookLoadPackage
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
-//import com.bilibili.droid.x
 
 
 class XposedInit : IXposedHookLoadPackage {
@@ -27,56 +27,45 @@ class XposedInit : IXposedHookLoadPackage {
         fun handleBstar() {
             log("hook bstar")
 
-            XposedHelpers.findAndHookMethod(
-                Application::class.java,
-                "attach",
-                Context::class.java,
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(appParam: MethodHookParam) {
-                        super.afterHookedMethod(appParam)
+            findMethodByCondition(Application::class.java) {
+                it.name == "attach"
+            }.also { m ->
+                m.hookAfter { param ->
+                    val currentContext = param.args[0] as Context
+                    versionCode = getAppVersionCode(currentContext)
+                    versionCodeStr = versionCode.toString()
 
-                        val currentContext = appParam.args[0] as Context
-                        versionCode = getAppVersionCode(currentContext)
-                        versionCodeStr = versionCode.toString()
+                    startHook(SettingsHook(classLoader))
+                    startHook(InfoHook(classLoader))
+                    startHook(SimHook(classLoader))
+                    startHook(LocaleHook(classLoader))
 
-                        val prefs = currentContext.getSharedPreferences(
-                            "bstar_tweaks",
-                            Context.MODE_PRIVATE
-                        )
+                    val prefs = currentContext.getSharedPreferences(
+                        "bstar_tweaks",
+                        Context.MODE_PRIVATE
+                    )
 
-//                        try {
-//                            x.b(currentContext, "TESTTESTTEST")
-//                        } catch (e: Throwable) {
-//                            log(e)
-//                        }
-
-                        startHook(SettingsHook(classLoader))
-                        startHook(InfoHook(classLoader))
-                        startHook(SimHook(classLoader))
-                        startHook(LocaleHook(classLoader))
-
-                        val forceAllowDownload = prefs.getBoolean("force_allow_download", false)
-                        if (forceAllowDownload) {
-                            startHook(DownloadHook(classLoader))
-                        }
-
-                        val forceMobileNetwork = prefs.getBoolean("force_mobile_network", false)
-                        if (forceMobileNetwork) {
-                            startHook(NetworkHook(classLoader))
-                        }
-
-                        val cleanShareUrl = prefs.getBoolean("clean_share_url", false)
-                        if (cleanShareUrl) {
-                            startHook(ShareHook(classLoader))
-                        }
-
-                        val privacyMode = prefs.getBoolean("privacy_mode", false)
-                        if (privacyMode) {
-                            startHook(PrivacyHook(classLoader))
-                        }
+                    val forceAllowDownload = prefs.getBoolean("force_allow_download", false)
+                    if (forceAllowDownload) {
+                        startHook(DownloadHook(classLoader))
                     }
 
-                })
+                    val forceMobileNetwork = prefs.getBoolean("force_mobile_network", false)
+                    if (forceMobileNetwork) {
+                        startHook(NetworkHook(classLoader))
+                    }
+
+                    val cleanShareUrl = prefs.getBoolean("clean_share_url", false)
+                    if (cleanShareUrl) {
+                        startHook(ShareHook(classLoader))
+                    }
+
+                    val privacyMode = prefs.getBoolean("privacy_mode", false)
+                    if (privacyMode) {
+                        startHook(PrivacyHook(classLoader))
+                    }
+                }
+            }
         }
 
         fun getMajorVersionCode(): Int {
@@ -109,6 +98,7 @@ class XposedInit : IXposedHookLoadPackage {
 
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName != lpparam.processName) return
+        EzXHelperInit.initHandleLoadPackage(lpparam)
         classLoader = lpparam.classLoader
         processName = lpparam.processName
         when (lpparam.packageName) {

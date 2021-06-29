@@ -10,8 +10,7 @@ import android.widget.RelativeLayout
 import com.github.bstartweaks.ClassMaps
 import com.github.bstartweaks.XposedInit
 import com.github.bstartweaks.ui.ForegroundRelativeLayout
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedHelpers
+import com.github.kyuubiran.ezxhelper.utils.*
 import java.text.DateFormat
 import java.util.*
 
@@ -22,134 +21,103 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
         val toastMapData = findToastMap() ?: throw NoClassDefFoundError("startHook: InfoHook failed")
         val personInfoFragmentClazz =
             mClassLoader.loadClass("tv.danmaku.bili.ui.personinfo.PersonInfoFragment")
-        XposedHelpers.findAndHookMethod(
-            personInfoFragmentClazz,
-            "onCreateView",
-            LayoutInflater::class.java,
-            ViewGroup::class.java,
-            Bundle::class.java,
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    super.afterHookedMethod(param)
-                    val activity = XposedHelpers.callMethod(
-                        param.thisObject,
-                        "getActivity"
-                    )
-                    val context = XposedHelpers.callMethod(
-                        activity,
-                        "getApplicationContext"
-                    ) as Context
-                    val accountHelperClazz =
-                        mClassLoader.loadClass("com.bilibili.lib.account.e")
 
-                    // Lcom/bilibili/lib/account/e;
-                    val accountHelper = XposedHelpers.callStaticMethod(
-                        accountHelperClazz,
-                        "a",
-                        context
-                    )
-//                                        val accessKey =
-//                                            XposedHelpers.callMethod(accountHelper, "f") as String
+        findMethodByCondition(personInfoFragmentClazz) {
+            it.name == "onCreateView" && it.parameterTypes.size == 3 &&
+                    it.parameterTypes[0] == LayoutInflater::class.java &&
+                    it.parameterTypes[1] == ViewGroup::class.java &&
+                    it.parameterTypes[2] == Bundle::class.java
+        }.also { m->
+            m.hookAfter { param->
+                val activity = param.thisObject.invokeMethod("getActivity")
+                val context = activity?.invokeMethod("getApplicationContext") as Context
+                val accountHelperClazz = mClassLoader.loadClass("com.bilibili.lib.account.e")
 
-                    // Lcom/bilibili/lib/passport/c;
-                    val cObj = XposedHelpers.getObjectField(accountHelper, "c")
-                    // Lcom/bilibili/lib/passport/f;
-                    val fObj = XposedHelpers.getObjectField(cObj, "a")
-                    // Lcom/bilibili/lib/passport/a;
-                    val aObj = XposedHelpers.callMethod(fObj, "d")
+                // Lcom/bilibili/lib/account/e;
+                val accountHelper = accountHelperClazz.invokeStaticMethodAuto("a", context)
 
-                    // Lcom/bilibili/lib/passport/a;
-//                                        val expiresIn =
-//                                            XposedHelpers.getObjectField(aObj, "a") as Long
-//                                        val mid = XposedHelpers.getObjectField(aObj, "b") as Long
-                    val accessToken =
-                        XposedHelpers.getObjectField(aObj, "c") as String
-                    val refreshToken =
-                        XposedHelpers.getObjectField(aObj, "d") as String
-                    val expires =
-                        XposedHelpers.getObjectField(aObj, "e") as Long
+                // Lcom/bilibili/lib/passport/c;
+                val cObj = accountHelper?.getObject("c")
+                // Lcom/bilibili/lib/passport/f;
+                val fObj = cObj?.getObject("a")
+                // Lcom/bilibili/lib/passport/a;
+                val aObj = fObj?.getObject("d")
 
-//                                        log("\nexpiresIn: $expiresIn\nmid: $mid\naccessToken: $accessToken\nrefreshToken: $refreshToken\nexpires: $expires")
+                // Lcom/bilibili/lib/passport/a;
+                val accessToken = aObj?.getObject("c") as String
+                val refreshToken = aObj.getObject("d") as String
+                val expires = aObj.getObject("e") as Long
 
-                    val view = param.result as View
+                val view = param.result as View
 
-                    val resources =
-                        XposedHelpers.callMethod(activity, "getResources")
-                    val uidLayoutId = XposedHelpers.callMethod(
-                        resources, "getIdentifier",
-                        "uid_layout",
-                        "id",
-                        XposedHelpers.callMethod(activity, "getPackageName")
-                    ) as Int
-                    val uidLayout = view.findViewById<View>(uidLayoutId)
-                    val linearLayout = uidLayout.parent as LinearLayout
+                val resources = activity.invokeMethodAuto("getResources")
+                val uidLayoutId = resources?.invokeMethodAuto(
+                    "getIdentifier",
+                    "uid_layout",
+                    "id",
+                    activity.invokeMethodAuto("getPackageName")
+                ) as Int
+                val uidLayout = view.findViewById<View>(uidLayoutId)
+                val linearLayout = uidLayout.parent as LinearLayout
 
-                    val rllp = RelativeLayout.LayoutParams(
-                        RelativeLayout.LayoutParams.MATCH_PARENT,
-                        RelativeLayout.LayoutParams.WRAP_CONTENT
-                    )
+                val rllp = RelativeLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.MATCH_PARENT,
+                    RelativeLayout.LayoutParams.WRAP_CONTENT
+                )
 
-                    val accessTokenLayout = ForegroundRelativeLayout(
-                        activity as Context,
-                        "Access Token",
+                val accessTokenLayout = ForegroundRelativeLayout(
+                    activity as Context,
+                    "Access Token",
+                    accessToken
+                )
+                val clipboardHelperClazz =
+                    mClassLoader.loadClass(copyMapData.first)
+                val toastHelperClazz =
+                    mClassLoader.loadClass(toastMapData.first)
+                accessTokenLayout.setOnClickListener {
+                    clipboardHelperClazz.invokeStaticMethodAuto(
+                        copyMapData.second,
+                        context,
                         accessToken
                     )
-                    accessTokenLayout.setOnClickListener {
-                        val clipboardHelperClazz =
-                            mClassLoader.loadClass(copyMapData.first)
-                        XposedHelpers.callStaticMethod(
-                            clipboardHelperClazz,
-                            copyMapData.second,
-                            context,
-                            accessToken
-                        )
-                        val toastHelperClazz =
-                            mClassLoader.loadClass(toastMapData.first)
-                        XposedHelpers.callStaticMethod(
-                            toastHelperClazz,
-                            toastMapData.second,
-                            context,
-                            "已复制 Access Token"
-                        )
-                    }
-                    linearLayout.addView(accessTokenLayout.build(), rllp)
+                    toastHelperClazz.invokeStaticMethodAuto(
+                        toastMapData.second,
+                        context,
+                        "已复制 Access Token"
+                    )
+                }
+                linearLayout.addView(accessTokenLayout.build(), rllp)
 
-                    val refreshTokenLayout = ForegroundRelativeLayout(
-                        activity,
-                        "Refresh Token",
+                val refreshTokenLayout = ForegroundRelativeLayout(
+                    activity,
+                    "Refresh Token",
+                    refreshToken
+                )
+                refreshTokenLayout.setOnClickListener {
+                    clipboardHelperClazz.invokeStaticMethodAuto(
+                        copyMapData.second,
+                        context,
                         refreshToken
                     )
-                    refreshTokenLayout.setOnClickListener {
-                        val clipboardHelperClazz =
-                            mClassLoader.loadClass(copyMapData.first)
-                        XposedHelpers.callStaticMethod(
-                            clipboardHelperClazz,
-                            copyMapData.second,
-                            context,
-                            refreshToken
-                        )
-                        val toastHelperClazz =
-                            mClassLoader.loadClass(toastMapData.first)
-                        XposedHelpers.callStaticMethod(
-                            toastHelperClazz,
-                            toastMapData.second,
-                            context,
-                            "已复制 Refresh Token"
-                        )
-                    }
-                    linearLayout.addView(refreshTokenLayout.build(), rllp)
-
-                    val expiresStr = DateFormat.getDateTimeInstance()
-                        .format(Date(expires * 1000))
-                    val expiresLayout =
-                        ForegroundRelativeLayout(
-                            activity,
-                            "Expires",
-                            expiresStr
-                        )
-                    linearLayout.addView(expiresLayout.build(), rllp)
+                    toastHelperClazz.invokeStaticMethodAuto(
+                        toastMapData.second,
+                        context,
+                        "已复制 Refresh Token"
+                    )
                 }
-            })
+                linearLayout.addView(refreshTokenLayout.build(), rllp)
+
+                val expiresStr = DateFormat.getDateTimeInstance()
+                    .format(Date(expires * 1000))
+                val expiresLayout =
+                    ForegroundRelativeLayout(
+                        activity,
+                        "Expires",
+                        expiresStr
+                    )
+                linearLayout.addView(expiresLayout.build(), rllp)
+            }
+        }
     }
 
     companion object {
