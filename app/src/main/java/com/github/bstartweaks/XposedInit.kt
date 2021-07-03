@@ -59,11 +59,6 @@ class XposedInit : IXposedHookLoadPackage {
                     if (cleanShareUrl) {
                         startHook(ShareHook(classLoader))
                     }
-
-                    val privacyMode = prefs.getBoolean("privacy_mode", false)
-                    if (privacyMode) {
-                        startHook(PrivacyHook(classLoader))
-                    }
                 }
             }
         }
@@ -83,7 +78,7 @@ class XposedInit : IXposedHookLoadPackage {
             }
         }
 
-        fun startHook(hooker: BaseHook) {
+        private fun startHook(hooker: BaseHook) {
             try {
                 hooker.startHook()
             } catch (e: Throwable) {
