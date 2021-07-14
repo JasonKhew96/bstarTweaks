@@ -7,9 +7,7 @@ import android.view.ViewGroup
 import com.github.bstartweaks.*
 import com.github.bstartweaks.dialog.SettingsDialog
 import com.github.bstartweaks.ui.Preference
-import com.github.kyuubiran.ezxhelper.utils.findMethodByCondition
-import com.github.kyuubiran.ezxhelper.utils.hookAfter
-import com.github.kyuubiran.ezxhelper.utils.invokeMethodAuto
+import com.github.kyuubiran.ezxhelper.utils.*
 
 class SettingsHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
@@ -49,8 +47,17 @@ class SettingsHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
 
                 preferenceScreen?.invokeMethodAuto("addPreference", hookPreference.build())
 
-                val mapData = findMap() ?: throw NoClassDefFoundError("startHook: ShareHook failed")
-                param.thisObject.invokeMethodAuto(mapData)
+                // experimental
+                val filteredMethods = getMethodsByCondition(helpFragmentClazz) {
+                    it.isPrivate && it.returnType == Void.TYPE && it.parameterTypes.isEmpty()
+                }
+                if (filteredMethods.size >= 4) {
+                    filteredMethods[3].invoke(param.thisObject) // should always at 4
+                } else { // fallback
+                    val mapData =
+                        findMap() ?: throw NoClassDefFoundError("startHook: ShareHook failed")
+                    param.thisObject.invokeMethodAuto(mapData)
+                }
             }
         }
     }
