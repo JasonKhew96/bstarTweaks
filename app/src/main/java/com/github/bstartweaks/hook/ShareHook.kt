@@ -12,9 +12,8 @@ class ShareHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
         val refClazz = mClassLoader.loadClass(mapData.first)
 
         findMethodByCondition(refClazz) {
-            it.name == mapData.second && it.parameterTypes.size == 2 &&
-                    it.parameterTypes[0] == String::class.java &&
-                    it.parameterTypes[1] == String::class.java
+            it.name == mapData.second && it.parameterTypes.size == 1 &&
+                    it.parameterTypes[0] == String::class.java
         }.also { m ->
             m.hookReplace { param ->
                 param.args[1]
