@@ -12,15 +12,16 @@ class ClassMaps {
             1080 to ("b.be0" to "a"),
             1081 to ("b.be0" to "a"),
             1090 to ("b.de0" to "a"),
+            1100 to ("b.td0" to "a"),
         )
         val locale: HashMap<Int, Pair<String, String>> = hashMapOf(
-            1090 to ("com.bilibili.lib.ui.util.f" to "b"),
+            1100 to ("com.bilibili.lib.ui.util.f" to "b"),
         )
         val copy: HashMap<Int, Pair<String, String>> = hashMapOf(
-            1090 to ("com.bilibili.droid.f" to "a"),
+            1100 to ("com.bilibili.droid.f" to "a"),
         )
         val toast: HashMap<Int, Pair<String, String>> = hashMapOf(
-            1090 to ("com.bilibili.droid.x" to "b"),
+            1100 to ("com.bilibili.droid.x" to "b"),
         )
         val download: HashMap<Int, Pair<String, String>> = hashMapOf(
             1052 to ("b.ti" to "E"),
@@ -30,6 +31,7 @@ class ClassMaps {
             1080 to ("b.gi" to "x"),
             1081 to ("b.gi" to "x"),
             1090 to ("b.ei" to "x"),
+            1100 to ("b.ci" to "x"),
         )
     }
 }

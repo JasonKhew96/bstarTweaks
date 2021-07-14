@@ -10,6 +10,7 @@ class MethodMaps {
             1080 to "j1",
             1081 to "j1",
             1090 to "u1",
+            1100 to "t1",
         )
     }
 }
