@@ -3,62 +3,71 @@
 package com.github.bstartweaks
 
 import android.app.Application
+import android.app.Instrumentation
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.util.Log
+import android.content.res.Resources
+import android.content.res.XModuleResources
 import com.github.bstartweaks.hook.*
-import com.github.kyuubiran.ezxhelper.init.EzXHelperInit
-import com.github.kyuubiran.ezxhelper.utils.findMethodByCondition
-import com.github.kyuubiran.ezxhelper.utils.hookAfter
+import com.github.bstartweaks.utils.Log
+import com.github.bstartweaks.utils.hookBeforeMethod
+import com.github.bstartweaks.utils.sPrefs
 import de.robv.android.xposed.IXposedHookLoadPackage
+import de.robv.android.xposed.IXposedHookZygoteInit
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
 
-class XposedInit : IXposedHookLoadPackage {
+class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
+    override fun initZygote(startupParam: IXposedHookZygoteInit.StartupParam) {
+        modulePath = startupParam.modulePath
+        moduleRes = getModuleRes(modulePath)
+    }
+
     companion object {
-
-        private const val TAG = "bstarTweaks"
         lateinit var classLoader: ClassLoader
+        lateinit var modulePath: String
+        lateinit var moduleRes: Resources
+
         lateinit var processName: String
-        var versionCode: Int = 0
-        var versionCodeStr: String = ""
+        private var versionCode: Int = 0
+        private var versionCodeStr: String = ""
 
-        fun handleBstar() {
-            log("hook bstar")
+        fun getModuleRes(path: String): Resources {
+            return XModuleResources.createInstance(path, null)
+        }
 
-            findMethodByCondition(Application::class.java) {
-                it.name == "attach"
-            }.also { m ->
-                m.hookAfter { param ->
-                    val currentContext = param.args[0] as Context
-                    versionCode = getAppVersionCode(currentContext)
-                    versionCodeStr = versionCode.toString()
+        fun handleBstar(mClassLoader: ClassLoader) {
+            Log.d("hook bstar")
 
-                    startHook(SettingsHook(classLoader))
-                    startHook(InfoHook(classLoader))
-                    startHook(SimHook(classLoader))
-                    startHook(LocaleHook(classLoader))
+            Instrumentation::class.java.hookBeforeMethod(
+                "callApplicationOnCreate",
+                Application::class.java
+            ) { param ->
+                BilibiliPackage(mClassLoader, param.args[0] as Context)
 
-                    val prefs = currentContext.getSharedPreferences(
-                        "bstar_tweaks",
-                        Context.MODE_PRIVATE
-                    )
+                val currentContext = param.args[0] as Context
+                versionCode = getAppVersionCode(currentContext)
+                versionCodeStr = versionCode.toString()
 
-                    val forceAllowDownload = prefs.getBoolean("force_allow_download", false)
-                    if (forceAllowDownload) {
-                        startHook(DownloadHook(classLoader))
-                    }
+                startHook(SettingsHook(mClassLoader))
+                startHook(InfoHook(mClassLoader))
+                startHook(SimHook(mClassLoader))
+                startHook(LocaleHook(mClassLoader))
 
-                    val forceMobileNetwork = prefs.getBoolean("force_mobile_network", false)
-                    if (forceMobileNetwork) {
-                        startHook(NetworkHook(classLoader))
-                    }
+                val forceAllowDownload = sPrefs.getBoolean("force_allow_download", false)
+                if (forceAllowDownload) {
+                    startHook(DownloadHook(mClassLoader))
+                }
 
-                    val cleanShareUrl = prefs.getBoolean("clean_share_url", false)
-                    if (cleanShareUrl) {
-                        startHook(ShareHook(classLoader))
-                    }
+                val forceMobileNetwork = sPrefs.getBoolean("force_mobile_network", false)
+                if (forceMobileNetwork) {
+                    startHook(NetworkHook(mClassLoader))
+                }
+
+                val cleanShareUrl = sPrefs.getBoolean("clean_share_url", false)
+                if (cleanShareUrl) {
+                    startHook(ShareHook(mClassLoader))
                 }
             }
         }
@@ -70,7 +79,7 @@ class XposedInit : IXposedHookLoadPackage {
         private fun getAppVersionCode(context: Context): Int {
             return try {
                 val packageInfo: PackageInfo =
-                    context.packageManager.getPackageInfo(Constants.PACKAGE_NAME, 0)
+                    context.packageManager.getPackageInfo(Constant.PACKAGE_NAME, 0)
                 packageInfo.versionCode
             } catch (e: PackageManager.NameNotFoundException) {
                 e.printStackTrace()
@@ -82,22 +91,17 @@ class XposedInit : IXposedHookLoadPackage {
             try {
                 hooker.startHook()
             } catch (e: Throwable) {
-                log(e)
+                Log.e(e)
             }
-        }
-
-        fun log(e: Any?) {
-            Log.d(TAG, "$processName: $e")
         }
     }
 
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName != lpparam.processName) return
-        EzXHelperInit.initHandleLoadPackage(lpparam)
         classLoader = lpparam.classLoader
         processName = lpparam.processName
         when (lpparam.packageName) {
-            Constants.PACKAGE_NAME -> handleBstar()
+            Constant.PACKAGE_NAME -> handleBstar(lpparam.classLoader)
         }
     }
 
