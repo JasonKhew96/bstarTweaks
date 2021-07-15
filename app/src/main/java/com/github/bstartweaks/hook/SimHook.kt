@@ -1,18 +1,17 @@
 package com.github.bstartweaks.hook
 
 import android.telephony.TelephonyManager
-import com.github.bstartweaks.XposedInit
-import com.github.kyuubiran.ezxhelper.utils.findMethodByCondition
-import com.github.kyuubiran.ezxhelper.utils.hookReplace
+import com.github.bstartweaks.utils.Log
+import com.github.bstartweaks.utils.replaceMethod
 
 class SimHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
-        XposedInit.log("startHook: SimHook")
+        Log.d("startHook: SimHook")
 
-        findMethodByCondition(TelephonyManager::class.java) {
+        TelephonyManager::class.java.declaredMethods.firstOrNull {
             it.name == "getSimOperator"
         }.also { m ->
-            m.hookReplace {
+            m?.replaceMethod {
                 ""
             }
         }

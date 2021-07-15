@@ -4,36 +4,42 @@ import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import com.github.bstartweaks.*
+import com.github.bstartweaks.BuildConfig
+import com.github.bstartweaks.Constant
+import com.github.bstartweaks.MethodMaps
+import com.github.bstartweaks.XposedInit
 import com.github.bstartweaks.dialog.SettingsDialog
 import com.github.bstartweaks.ui.Preference
-import com.github.kyuubiran.ezxhelper.utils.*
+import com.github.bstartweaks.utils.Log
+import com.github.bstartweaks.utils.callMethod
+import com.github.bstartweaks.utils.hookAfterMethod
+import java.lang.reflect.Modifier
 
 class SettingsHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
-        XposedInit.log("startHook: SettingsHook")
+        Log.d("startHook: SettingsHook")
         val helpFragmentClazz =
             mClassLoader.loadClass("com.bilibili.app.preferences.fragment.HelpFragment")
 
-        findMethodByCondition(helpFragmentClazz) {
+        helpFragmentClazz.declaredMethods.firstOrNull {
             it.name == "onCreateView" && it.parameterTypes.size == 3 &&
                     it.parameterTypes[0] == LayoutInflater::class.java &&
                     it.parameterTypes[1] == ViewGroup::class.java &&
                     it.parameterTypes[2] == Bundle::class.java
         }.also { m ->
-            m.hookAfter { param ->
-                val activity = param.thisObject.invokeMethodAuto("getActivity")
+            m?.hookAfterMethod { param ->
+                val activity = param.thisObject.callMethod("getActivity")
 
-                val preferenceScreen = param.thisObject.invokeMethodAuto("getPreferenceScreen")
+                val preferenceScreen = param.thisObject.callMethod("getPreferenceScreen")
 
-                if (preferenceScreen?.invokeMethodAuto("findPreference", "bstar_tweaks") != null) {
-                    return@hookAfter
+                if (preferenceScreen?.callMethod("findPreference", "bstar_tweaks") != null) {
+                    return@hookAfterMethod
                 }
 
                 val hookPreference = Preference(activity as Context).apply {
                     title = "bstar 工具箱 ${BuildConfig.VERSION_NAME}"
                     summary =
-                        "魔法 (${Constants.supported_bstar_version_min}-${Constants.supported_bstar_version_max})"
+                        "魔法 (${Constant.supported_bstar_version_min}-${Constant.supported_bstar_version_max})"
                     key = "bstar_tweaks"
                     setOnPreferenceClickListener(
                         object : Preference.OnPreferenceClickListener {
@@ -45,21 +51,22 @@ class SettingsHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                     )
                 }
 
-                preferenceScreen?.invokeMethodAuto("addPreference", hookPreference.build())
+                preferenceScreen?.callMethod("addPreference", hookPreference.build())
 
                 // experimental
-                val filteredMethods = getMethodsByCondition(helpFragmentClazz) {
-                    it.isPrivate && it.returnType == Void.TYPE && it.parameterTypes.isEmpty()
+                val filteredMethods = helpFragmentClazz.declaredMethods.filter {
+                    Modifier.isPrivate(it.modifiers) && it.returnType == Void.TYPE && it.parameterTypes.isEmpty()
                 }
                 if (filteredMethods.size >= 4) {
-                    filteredMethods[3].invoke(param.thisObject) // should always at 4
+                    param.thisObject.callMethod(filteredMethods[3].name) // should always at 4
                 } else { // fallback
                     val mapData =
                         findMap() ?: throw NoClassDefFoundError("startHook: ShareHook failed")
-                    param.thisObject.invokeMethodAuto(mapData)
+                    param.thisObject.callMethod(mapData)
                 }
             }
         }
+
     }
 
     companion object {

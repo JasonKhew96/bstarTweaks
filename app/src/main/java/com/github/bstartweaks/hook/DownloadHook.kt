@@ -1,41 +1,47 @@
 package com.github.bstartweaks.hook
 
-import android.app.AndroidAppHelper
-import android.content.Context
 import com.github.bstartweaks.ClassMaps
 import com.github.bstartweaks.XposedInit
-import com.github.kyuubiran.ezxhelper.utils.findMethodByCondition
-import com.github.kyuubiran.ezxhelper.utils.hookAfter
-import com.github.kyuubiran.ezxhelper.utils.invokeStaticMethodAuto
+import com.github.bstartweaks.utils.*
+import java.lang.reflect.Type
 
 class DownloadHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
-        XposedInit.log("startHook: DownloadHook")
+        Log.d("startHook: DownloadHook")
 
-        val mapData = findMap() ?: throw NoClassDefFoundError("startHook: DownloadHook failed")
-        val toastMapData =
-            findToastMap() ?: throw NoClassDefFoundError("startHook: DownloadHook failed")
-        val bangumiHelperClazz = mClassLoader.loadClass(mapData.first)
-        val bangumiUniformSeasonClazz =
-            mClassLoader.loadClass("com.bilibili.bangumi.data.page.detail.entity.BangumiUniformSeason")
+        val generalResponseClass =
+            "com.bilibili.okretro.GeneralResponse".findClassOrNull(mClassLoader)
+        val bangumiApiResponseClass =
+            "com.bilibili.bangumi.data.common.api.BangumiApiResponse".findClassOrNull(mClassLoader)
+        val bangumiUniformSeason =
+            "com.bilibili.bangumi.data.page.detail.entity.BangumiUniformSeason".findClassOrNull(
+                mClassLoader
+            )
+        val fastJsonClass = "com.alibaba.fastjson.JSON".findClassOrNull(mClassLoader)
 
-        findMethodByCondition(bangumiHelperClazz) {
-            it.name == mapData.second &&
-                    it.parameterTypes.size == 1 &&
-                    it.parameterTypes[0] == bangumiUniformSeasonClazz
-        }.also { m ->
-            m.hookAfter { param ->
-                if (param.result == false) {
-                    val toastHelperClazz =
-                        mClassLoader.loadClass(toastMapData.first)
-                    toastHelperClazz.invokeStaticMethodAuto(
-                        toastMapData.second,
-                        AndroidAppHelper.currentApplication() as Context,
-                        "已强制启用下载"
-                    )
-                    param.result = true
+        fastJsonClass?.hookAfterMethod(
+            "parseObject",
+            String::class.java,
+            Type::class.java,
+            Int::class.javaPrimitiveType,
+            "com.alibaba.fastjson.parser.Feature[]"
+        ) { param ->
+            val result = param.result ?: return@hookAfterMethod
+            if (result.javaClass == generalResponseClass) {
+                return@hookAfterMethod
+            }
+            if (result.javaClass == bangumiApiResponseClass) {
+                val newResult = result.getObjectField("result")
+                if (newResult?.javaClass == bangumiUniformSeason) {
+                    val rights = newResult?.getObjectField("rights")
+                    val allowDownload = rights?.getBooleanFieldOrNull("allowDownload")
+                    if (allowDownload?.equals(false) == true) {
+                        rights.setBooleanField("allowDownload", true)
+                        Log.toast("已强制启用下载")
+                    }
                 }
             }
+//            Log.d(result.javaClass)
         }
     }
 

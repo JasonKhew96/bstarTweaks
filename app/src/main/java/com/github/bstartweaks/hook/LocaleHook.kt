@@ -1,24 +1,23 @@
 package com.github.bstartweaks.hook
 
-import android.content.Context
 import com.github.bstartweaks.ClassMaps
 import com.github.bstartweaks.XposedInit
-import com.github.kyuubiran.ezxhelper.utils.findMethodByCondition
-import com.github.kyuubiran.ezxhelper.utils.hookAfter
+import com.github.bstartweaks.utils.Log
+import com.github.bstartweaks.utils.hookAfterMethod
 import java.util.*
 
 class LocaleHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
-        XposedInit.log("startHook: LocaleHook")
+        Log.d("startHook: LocaleHook")
         val mapData = findMap() ?: throw NoClassDefFoundError("startHook: LocaleHook failed")
         val localeClazz =
             mClassLoader.loadClass(mapData.first)
 
-        findMethodByCondition(localeClazz) {
+        localeClazz.declaredMethods.firstOrNull {
             it.name == mapData.second /*&& it.typeParameters.size == 1 &&
                     it.typeParameters[0] == Context::class.java*/
         }.also { m ->
-            m.hookAfter { param ->
+            m?.hookAfterMethod { param ->
                 val locale = param.result as Locale
                 if (locale.country == "CN" || locale.country == "TW") {
 //                    val newLocale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -33,6 +32,7 @@ class LocaleHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                 }
             }
         }
+
     }
 
     companion object {

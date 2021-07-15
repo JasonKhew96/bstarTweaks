@@ -10,52 +10,53 @@ import android.widget.RelativeLayout
 import com.github.bstartweaks.ClassMaps
 import com.github.bstartweaks.XposedInit
 import com.github.bstartweaks.ui.ForegroundRelativeLayout
-import com.github.kyuubiran.ezxhelper.utils.*
+import com.github.bstartweaks.utils.*
 import java.text.DateFormat
 import java.util.*
 
 class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
-        XposedInit.log("startHook: InfoHook")
+        Log.d("startHook: InfoHook")
         val copyMapData = findCopyMap() ?: throw NoClassDefFoundError("startHook: InfoHook failed")
-        val toastMapData = findToastMap() ?: throw NoClassDefFoundError("startHook: InfoHook failed")
+        val toastMapData =
+            findToastMap() ?: throw NoClassDefFoundError("startHook: InfoHook failed")
         val personInfoFragmentClazz =
             mClassLoader.loadClass("tv.danmaku.bili.ui.personinfo.PersonInfoFragment")
 
-        findMethodByCondition(personInfoFragmentClazz) {
+        personInfoFragmentClazz.declaredMethods.firstOrNull {
             it.name == "onCreateView" && it.parameterTypes.size == 3 &&
                     it.parameterTypes[0] == LayoutInflater::class.java &&
                     it.parameterTypes[1] == ViewGroup::class.java &&
                     it.parameterTypes[2] == Bundle::class.java
-        }.also { m->
-            m.hookAfter { param->
-                val activity = param.thisObject.invokeMethod("getActivity")
-                val context = activity?.invokeMethod("getApplicationContext") as Context
+        }.also { m ->
+            m?.hookAfterMethod { param ->
+                val activity = param.thisObject.callMethod("getActivity")
+                val context = activity?.callMethod("getApplicationContext") as Context
                 val accountHelperClazz = mClassLoader.loadClass("com.bilibili.lib.account.e")
 
                 // Lcom/bilibili/lib/account/e;
-                val accountHelper = accountHelperClazz.invokeStaticMethodAuto("a", context)
+                val accountHelper = accountHelperClazz.callStaticMethod("a", context)
 
                 // Lcom/bilibili/lib/passport/c;
-                val cObj = accountHelper?.getObject("c")
+                val cObj = accountHelper?.getObjectField("c")
                 // Lcom/bilibili/lib/passport/f;
-                val fObj = cObj?.getObject("a")
+                val fObj = cObj?.getObjectField("a")
                 // Lcom/bilibili/lib/passport/a;
-                val aObj = fObj?.getObject("d")
+                val aObj = fObj?.getObjectField("d")
 
                 // Lcom/bilibili/lib/passport/a;
-                val accessToken = aObj?.getObject("c") as String
-                val refreshToken = aObj.getObject("d") as String
-                val expires = aObj.getObject("e") as Long
+                val accessToken = aObj?.getObjectField("c") as String
+                val refreshToken = aObj.getObjectField("d") as String
+                val expires = aObj.getLongField("e")
 
                 val view = param.result as View
 
-                val resources = activity.invokeMethodAuto("getResources")
-                val uidLayoutId = resources?.invokeMethodAuto(
+                val resources = activity.callMethod("getResources")
+                val uidLayoutId = resources?.callMethod(
                     "getIdentifier",
                     "uid_layout",
                     "id",
-                    activity.invokeMethodAuto("getPackageName")
+                    activity.callMethod("getPackageName")
                 ) as Int
                 val uidLayout = view.findViewById<View>(uidLayoutId)
                 val linearLayout = uidLayout.parent as LinearLayout
@@ -75,12 +76,12 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                 val toastHelperClazz =
                     mClassLoader.loadClass(toastMapData.first)
                 accessTokenLayout.setOnClickListener {
-                    clipboardHelperClazz.invokeStaticMethodAuto(
+                    clipboardHelperClazz.callStaticMethod(
                         copyMapData.second,
                         context,
                         accessToken
                     )
-                    toastHelperClazz.invokeStaticMethodAuto(
+                    toastHelperClazz.callStaticMethod(
                         toastMapData.second,
                         context,
                         "已复制 Access Token"
@@ -94,12 +95,12 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                     refreshToken
                 )
                 refreshTokenLayout.setOnClickListener {
-                    clipboardHelperClazz.invokeStaticMethodAuto(
+                    clipboardHelperClazz.callStaticMethod(
                         copyMapData.second,
                         context,
                         refreshToken
                     )
-                    toastHelperClazz.invokeStaticMethodAuto(
+                    toastHelperClazz.callStaticMethod(
                         toastMapData.second,
                         context,
                         "已复制 Refresh Token"
@@ -125,13 +126,14 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
             if (ClassMaps.copy.containsKey(XposedInit.getMajorVersionCode())) {
                 return ClassMaps.copy[XposedInit.getMajorVersionCode()]
             }
-            return ClassMaps.copy.maxByOrNull { p-> p.key }?.value
+            return ClassMaps.copy.maxByOrNull { p -> p.key }?.value
         }
+
         fun findToastMap(): Pair<String, String>? {
             if (ClassMaps.toast.containsKey(XposedInit.getMajorVersionCode())) {
                 return ClassMaps.toast[XposedInit.getMajorVersionCode()]
             }
-            return ClassMaps.toast.maxByOrNull { p-> p.key }?.value
+            return ClassMaps.toast.maxByOrNull { p -> p.key }?.value
         }
     }
 }

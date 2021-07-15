@@ -4,18 +4,17 @@ package com.github.bstartweaks.hook
 
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
-import com.github.bstartweaks.XposedInit
-import com.github.kyuubiran.ezxhelper.utils.findMethodByCondition
-import com.github.kyuubiran.ezxhelper.utils.hookReplace
+import com.github.bstartweaks.utils.Log
+import com.github.bstartweaks.utils.replaceMethod
 
 class NetworkHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
-        XposedInit.log("startHook: NetworkHook")
+        Log.d("startHook: NetworkHook")
 
-        findMethodByCondition(NetworkInfo::class.java) {
+        NetworkInfo::class.java.declaredMethods.firstOrNull {
             it.name == "getType"
         }.also { m ->
-            m.hookReplace {
+            m?.replaceMethod {
                 ConnectivityManager.TYPE_MOBILE
             }
         }
@@ -23,21 +22,20 @@ class NetworkHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
         val ijkNetworkUtilsClazz =
             mClassLoader.loadClass("tv.danmaku.ijk.media.player.IjkNetworkUtils")
 
-        findMethodByCondition(ijkNetworkUtilsClazz) {
+        ijkNetworkUtilsClazz.declaredMethods.firstOrNull {
             it.name == "isWifiValid"
         }.also { m ->
-            m.hookReplace {
+            m?.replaceMethod {
                 false
             }
         }
 
-        findMethodByCondition(ijkNetworkUtilsClazz) {
+        ijkNetworkUtilsClazz.declaredMethods.firstOrNull {
             it.name == "isMobileNetwork"
         }.also { m ->
-            m.hookReplace {
+            m?.replaceMethod {
                 true
             }
         }
-
     }
 }
