@@ -69,17 +69,17 @@ dependencies {
     implementation 'com.github.kyuubiran:EzXHelper:0.3.0'
 }
 
-//afterEvaluate {
-//    installDebug.doLast {
-//        restartBiliBili()
-//    }
-//}
-//
-//def restartBiliBili() {
-//    exec {
-//        commandLine android.adbExecutable, 'shell', 'am', 'force-stop', 'com.bstar.intl'
-//    }
-//    exec {
-//        commandLine android.adbExecutable, 'shell', 'monkey', '-p', 'com.bstar.intl', '1'
-//    }
-//}
+afterEvaluate {
+    installDebug.doLast {
+        restartBiliBili()
+    }
+}
+
+def restartBiliBili() {
+    exec {
+        commandLine android.adbExecutable, 'shell', 'am', 'force-stop', 'com.bstar.intl'
+    }
+    exec {
+        commandLine android.adbExecutable, 'shell', 'monkey', '-p', 'com.bstar.intl', '1'
+    }
+}
