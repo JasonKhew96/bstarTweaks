@@ -7,8 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
-import com.github.bstartweaks.ClassMaps
-import com.github.bstartweaks.XposedInit
 import com.github.bstartweaks.ui.ForegroundRelativeLayout
 import com.github.bstartweaks.utils.*
 import java.text.DateFormat
@@ -17,9 +15,6 @@ import java.util.*
 class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
         Log.d("startHook: InfoHook")
-        val copyMapData = findCopyMap() ?: throw NoClassDefFoundError("startHook: InfoHook failed")
-        val toastMapData =
-            findToastMap() ?: throw NoClassDefFoundError("startHook: InfoHook failed")
         val personInfoFragmentClazz =
             mClassLoader.loadClass("tv.danmaku.bili.ui.personinfo.PersonInfoFragment")
 
@@ -72,17 +67,17 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                     accessToken
                 )
                 val clipboardHelperClazz =
-                    mClassLoader.loadClass(copyMapData.first)
+                    mClassLoader.loadClass("com.bilibili.droid.f")
                 val toastHelperClazz =
-                    mClassLoader.loadClass(toastMapData.first)
+                    mClassLoader.loadClass("com.bilibili.droid.x")
                 accessTokenLayout.setOnClickListener {
                     clipboardHelperClazz.callStaticMethod(
-                        copyMapData.second,
+                        "a",
                         context,
                         accessToken
                     )
                     toastHelperClazz.callStaticMethod(
-                        toastMapData.second,
+                        "b",
                         context,
                         "已复制 Access Token"
                     )
@@ -96,12 +91,12 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                 )
                 refreshTokenLayout.setOnClickListener {
                     clipboardHelperClazz.callStaticMethod(
-                        copyMapData.second,
+                        "a",
                         context,
                         refreshToken
                     )
                     toastHelperClazz.callStaticMethod(
-                        toastMapData.second,
+                        "b",
                         context,
                         "已复制 Refresh Token"
                     )
@@ -118,22 +113,6 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                     )
                 linearLayout.addView(expiresLayout.build(), rllp)
             }
-        }
-    }
-
-    companion object {
-        fun findCopyMap(): Pair<String, String>? {
-            if (ClassMaps.copy.containsKey(XposedInit.getMajorVersionCode())) {
-                return ClassMaps.copy[XposedInit.getMajorVersionCode()]
-            }
-            return ClassMaps.copy.maxByOrNull { p -> p.key }?.value
-        }
-
-        fun findToastMap(): Pair<String, String>? {
-            if (ClassMaps.toast.containsKey(XposedInit.getMajorVersionCode())) {
-                return ClassMaps.toast[XposedInit.getMajorVersionCode()]
-            }
-            return ClassMaps.toast.maxByOrNull { p -> p.key }?.value
         }
     }
 }

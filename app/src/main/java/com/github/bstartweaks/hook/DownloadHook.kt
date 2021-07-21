@@ -1,7 +1,5 @@
 package com.github.bstartweaks.hook
 
-import com.github.bstartweaks.ClassMaps
-import com.github.bstartweaks.XposedInit
 import com.github.bstartweaks.utils.*
 import java.lang.reflect.Type
 
@@ -42,22 +40,6 @@ class DownloadHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                 }
             }
 //            Log.d(result.javaClass)
-        }
-    }
-
-    companion object {
-        fun findMap(): Pair<String, String>? {
-            if (ClassMaps.download.containsKey(XposedInit.getMajorVersionCode())) {
-                return ClassMaps.download[XposedInit.getMajorVersionCode()]
-            }
-            return ClassMaps.download.maxByOrNull { p -> p.key }?.value
-        }
-
-        fun findToastMap(): Pair<String, String>? {
-            if (ClassMaps.toast.containsKey(XposedInit.getMajorVersionCode())) {
-                return ClassMaps.toast[XposedInit.getMajorVersionCode()]
-            }
-            return ClassMaps.toast.maxByOrNull { p -> p.key }?.value
         }
     }
 }

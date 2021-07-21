@@ -1,7 +1,5 @@
 package com.github.bstartweaks.hook
 
-import com.github.bstartweaks.ClassMaps
-import com.github.bstartweaks.XposedInit
 import com.github.bstartweaks.utils.Log
 import com.github.bstartweaks.utils.hookAfterMethod
 import java.util.*
@@ -9,12 +7,11 @@ import java.util.*
 class LocaleHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
         Log.d("startHook: LocaleHook")
-        val mapData = findMap() ?: throw NoClassDefFoundError("startHook: LocaleHook failed")
         val localeClazz =
-            mClassLoader.loadClass(mapData.first)
+            mClassLoader.loadClass("com.bilibili.lib.ui.util.f")
 
         localeClazz.declaredMethods.firstOrNull {
-            it.name == mapData.second /*&& it.typeParameters.size == 1 &&
+            it.name == "b" /*&& it.typeParameters.size == 1 &&
                     it.typeParameters[0] == Context::class.java*/
         }.also { m ->
             m?.hookAfterMethod { param ->
@@ -33,14 +30,5 @@ class LocaleHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
             }
         }
 
-    }
-
-    companion object {
-        fun findMap(): Pair<String, String>? {
-            if (ClassMaps.locale.containsKey(XposedInit.getMajorVersionCode())) {
-                return ClassMaps.locale[XposedInit.getMajorVersionCode()]
-            }
-            return ClassMaps.locale.maxByOrNull { p -> p.key }?.value
-        }
     }
 }
