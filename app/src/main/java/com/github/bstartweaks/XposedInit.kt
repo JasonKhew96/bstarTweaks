@@ -5,8 +5,6 @@ package com.github.bstartweaks
 import android.app.Application
 import android.app.Instrumentation
 import android.content.Context
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.content.res.XModuleResources
 import com.github.bstartweaks.hook.*
@@ -30,8 +28,6 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
         lateinit var moduleRes: Resources
 
         lateinit var processName: String
-        private var versionCode: Int = 0
-        private var versionCodeStr: String = ""
 
         fun getModuleRes(path: String): Resources {
             return XModuleResources.createInstance(path, null)
@@ -45,10 +41,6 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                 Application::class.java
             ) { param ->
                 BilibiliPackage(mClassLoader, param.args[0] as Context)
-
-                val currentContext = param.args[0] as Context
-                versionCode = getAppVersionCode(currentContext)
-                versionCodeStr = versionCode.toString()
 
                 startHook(SettingsHook(mClassLoader))
                 startHook(InfoHook(mClassLoader))
@@ -69,21 +61,6 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                 if (cleanShareUrl) {
                     startHook(ShareHook(mClassLoader))
                 }
-            }
-        }
-
-        fun getMajorVersionCode(): Int {
-            return Integer.parseInt(versionCodeStr.substring(0, 4))
-        }
-
-        private fun getAppVersionCode(context: Context): Int {
-            return try {
-                val packageInfo: PackageInfo =
-                    context.packageManager.getPackageInfo(Constant.PACKAGE_NAME, 0)
-                packageInfo.versionCode
-            } catch (e: PackageManager.NameNotFoundException) {
-                e.printStackTrace()
-                0
             }
         }
 
