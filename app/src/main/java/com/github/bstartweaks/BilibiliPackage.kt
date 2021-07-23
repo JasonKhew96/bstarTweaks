@@ -16,6 +16,7 @@ class BilibiliPackage constructor(private val mClassLoader: ClassLoader, mContex
     private val classesList by lazy { mClassLoader.allClassesList() }
 
     private fun findShareHelperClass(): String? {
+        // b.vd0;->a 1100101 1.10.0
         return classesList.firstOrNull {
             it.startsWith("b.") &&
                     it.findClass(mClassLoader).declaredConstructors.isEmpty() &&
