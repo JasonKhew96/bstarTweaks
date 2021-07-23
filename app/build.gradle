@@ -19,6 +19,7 @@ android {
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
         versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}"
         archivesBaseName = "$applicationId-v$versionName"
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -26,7 +27,7 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            multiDexEnabled false
+            multiDexEnabled true
         }
     }
 
