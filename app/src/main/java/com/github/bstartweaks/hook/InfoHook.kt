@@ -1,5 +1,7 @@
 package com.github.bstartweaks.hook
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -25,6 +27,9 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                     it.parameterTypes[2] == Bundle::class.java
         }.also { m ->
             m?.hookAfterMethod { param ->
+                val clipboardManager =
+                    currentContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
                 val activity = param.thisObject.callMethod("getActivity")
                 val context = activity?.callMethod("getApplicationContext") as Context
                 val accountHelperClazz = mClassLoader.loadClass("com.bilibili.lib.account.e")
@@ -66,21 +71,10 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                     "Access Token",
                     accessToken
                 )
-                val clipboardHelperClazz =
-                    mClassLoader.loadClass("com.bilibili.droid.f")
-                val toastHelperClazz =
-                    mClassLoader.loadClass("com.bilibili.droid.x")
                 accessTokenLayout.setOnClickListener {
-                    clipboardHelperClazz.callStaticMethod(
-                        "a",
-                        context,
-                        accessToken
-                    )
-                    toastHelperClazz.callStaticMethod(
-                        "b",
-                        context,
-                        "已复制 Access Token"
-                    )
+                    val clipData = ClipData.newPlainText("access token", accessToken)
+                    clipboardManager.setPrimaryClip(clipData)
+                    Log.toast("已复制 Access Token")
                 }
                 linearLayout.addView(accessTokenLayout.build(), rllp)
 
@@ -90,16 +84,9 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                     refreshToken
                 )
                 refreshTokenLayout.setOnClickListener {
-                    clipboardHelperClazz.callStaticMethod(
-                        "a",
-                        context,
-                        refreshToken
-                    )
-                    toastHelperClazz.callStaticMethod(
-                        "b",
-                        context,
-                        "已复制 Refresh Token"
-                    )
+                    val clipData = ClipData.newPlainText("refresh token", refreshToken)
+                    clipboardManager.setPrimaryClip(clipData)
+                    Log.toast("已复制 Refresh Token")
                 }
                 linearLayout.addView(refreshTokenLayout.build(), rllp)
 
