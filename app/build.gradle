@@ -9,13 +9,13 @@ def versionPatch = 0
 def versionBuild = 0 // bump for dogfood builds, public betas, etc.
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.github.bstartweaks"
-         minSdkVersion 17
-        targetSdkVersion 30
+        minSdkVersion 17
+        targetSdkVersion 31
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
         versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}"
         archivesBaseName = "$applicationId-v$versionName"
