@@ -11,8 +11,7 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import com.github.bstartweaks.ui.ForegroundRelativeLayout
 import com.github.bstartweaks.utils.*
-import java.text.DateFormat
-import java.util.*
+import java.text.SimpleDateFormat
 
 class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
@@ -90,14 +89,18 @@ class InfoHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                 }
                 linearLayout.addView(refreshTokenLayout.build(), rllp)
 
-                val expiresStr = DateFormat.getDateTimeInstance()
-                    .format(Date(expires * 1000))
+                val expiresStr = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(expires * 1000)
                 val expiresLayout =
                     ForegroundRelativeLayout(
                         activity,
                         "Expires",
                         expiresStr
                     )
+                expiresLayout.setOnClickListener {
+                    val clipData = ClipData.newPlainText("expires", expiresStr)
+                    clipboardManager.setPrimaryClip(clipData)
+                    Log.toast("已复制 Expires")
+                }
                 linearLayout.addView(expiresLayout.build(), rllp)
             }
         }
