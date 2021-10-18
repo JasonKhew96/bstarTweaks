@@ -10,7 +10,6 @@ import com.github.bstartweaks.ui.Preference
 import com.github.bstartweaks.utils.Log
 import com.github.bstartweaks.utils.callMethod
 import com.github.bstartweaks.utils.hookAfterMethod
-import java.lang.reflect.Modifier
 
 class SettingsHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
     override fun startHook() {
@@ -48,14 +47,6 @@ class SettingsHook(mClassLoader: ClassLoader) : BaseHook(mClassLoader) {
                 }
 
                 preferenceScreen?.callMethod("addPreference", hookPreference.build())
-
-                // experimental
-                val filteredMethods = helpFragmentClazz.declaredMethods.filter {
-                    Modifier.isPrivate(it.modifiers) && it.returnType == Void.TYPE && it.parameterTypes.isEmpty()
-                }
-                if (filteredMethods.size >= 4) {
-                    param.thisObject.callMethod(filteredMethods[3].name) // should always at 4
-                }
             }
         }
 
