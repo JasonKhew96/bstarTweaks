@@ -4,6 +4,8 @@ import android.app.Application
 import android.content.Context
 import com.github.bstartweaks.hook.BaseHook
 import com.github.bstartweaks.hook.JsonHook
+import com.github.bstartweaks.hook.ParamHook
+import com.github.bstartweaks.hook.SettingsHook
 import com.github.kyuubiran.ezxhelper.init.EzXHelperInit
 import com.github.kyuubiran.ezxhelper.init.InitFields.appContext
 import com.github.kyuubiran.ezxhelper.utils.Log
@@ -30,7 +32,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                 EzXHelperInit.setEzClassLoader(appContext.classLoader)
                 // Init hooks
                 BilibiliPackage()
-                initHooks(JsonHook)
+                initHooks(JsonHook, ParamHook)
             }
         }
     }
