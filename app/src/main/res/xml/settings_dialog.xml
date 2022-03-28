@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="Main">
+    <PreferenceCategory android:title="主要功能">
         <SwitchPreference android:title="强制启用下载" android:key="force_allow_download" />
     </PreferenceCategory>
     <PreferenceCategory android:title="帐号">
