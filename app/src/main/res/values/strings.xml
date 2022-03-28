@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">bstar Tweaks</string>
-    <string name="xposed_desc">Fuck Bilibili</string>
-    <string name="settings">bstart Tweaks Settings</string>
-    <string name="save_restart">Save and Restart</string>
-    <string name="dismiss">Dismiss</string>
+    <string name="app_name">bstar 工具箱</string>
+    <string name="xposed_desc">哔哩哔哩干杯</string>
+    <string name="settings">bstart 工具箱设置</string>
+    <string name="save_restart">保存并重启</string>
+    <string name="dismiss">关闭</string>
 </resources>

@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="Main">
-        <SwitchPreference android:title="Force allow download" android:key="force_allow_download" />
+        <SwitchPreference android:title="强制启用下载" android:key="force_allow_download" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="帐号">
+        <Preference android:title="Access Token" android:key="access_token"/>
+        <Preference android:title="Refresh Token" android:key="refresh_token" />
+        <Preference android:title="Expires" android:key="expires" />
     </PreferenceCategory>
 </PreferenceScreen>
