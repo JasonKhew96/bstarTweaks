@@ -1,7 +1,7 @@
-package com.example.template
+package com.github.bstartweaks
 
-import com.example.template.hook.BaseHook
-import com.example.template.hook.ExampleHook
+import com.github.bstartweaks.hook.BaseHook
+import com.github.bstartweaks.hook.ExampleHook
 import com.github.kyuubiran.ezxhelper.init.EzXHelperInit
 import com.github.kyuubiran.ezxhelper.utils.Log
 import com.github.kyuubiran.ezxhelper.utils.Log.logexIfThrow
@@ -9,8 +9,8 @@ import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.IXposedHookZygoteInit
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
-private const val PACKAGE_NAME_HOOKED = "android"
-private const val TAG = "xposed-template"
+private const val PACKAGE_NAME_HOOKED = "com.bstar.intl"
+private const val TAG = "bstarTweaks"
 
 class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit /* Optional */ {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
