@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">bstar Tweaks</string>
     <string name="xposed_desc">Fuck Bilibili</string>
+    <string name="settings">bstart Tweaks Settings</string>
+    <string name="save_restart">Save and Restart</string>
+    <string name="dismiss">Dismiss</string>
 </resources>
