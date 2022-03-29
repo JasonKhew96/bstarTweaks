@@ -18,9 +18,9 @@ object JsonHook : BaseHook() {
                 if (result.javaClass == instance.bangumiApiResponseClass) {
                     val newResult = result.getObjectOrNull("data") ?: return@hookAfter
                     if (newResult.javaClass == instance.bangumiUniformSeason) {
-                        if (modulePrefs.getBoolean("force_allow_download", false)) return@hookAfter
+                        if (!modulePrefs.getBoolean("force_allow_download", false)) return@hookAfter
                         val allowDownload =
-                            newResult.getObjectAs<Boolean>("allowDownload") ?: return@hookAfter
+                            newResult.getObjectAs<Boolean>("allowDownload")
                         if (!allowDownload) {
                             newResult.putObject("allowDownload", true)
                             Log.toast("已强制启用下载")
