@@ -4,6 +4,9 @@
         <SwitchPreference
             android:key="force_allow_download"
             android:title="强制启用下载" />
+        <SwitchPreference
+            android:key="clean_urls"
+            android:title="清除跟踪链接" />
     </PreferenceCategory>
     <PreferenceCategory android:title="帐号">
         <Preference
