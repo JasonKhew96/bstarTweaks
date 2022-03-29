@@ -4,13 +4,12 @@ package com.github.bstartweaks.ui
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.SharedPreferences
+import android.content.*
+import android.net.Uri
 import android.os.Bundle
 import android.preference.PreferenceFragment
 import com.github.bstartweaks.BilibiliPackage.Companion.instance
+import com.github.bstartweaks.BuildConfig
 import com.github.bstartweaks.R
 import com.github.kyuubiran.ezxhelper.init.InitFields.appContext
 import com.github.kyuubiran.ezxhelper.utils.*
@@ -31,6 +30,9 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
             preferenceManager.sharedPreferencesName = PREFS_NAME
             addPreferencesFromResource(R.xml.settings_dialog)
             prefs = preferenceManager.sharedPreferences
+
+            findPreference("version").summary = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+            findPreference("source_code").onPreferenceClickListener = this
 
             // Lcom/bilibili/lib/account/e;
             val accountHelper = instance.accountHelperClass?.invokeStaticMethodAuto("a", context)
@@ -77,6 +79,11 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
                 clipboardManager.setPrimaryClip(clipData)
                 Log.toast("已复制到剪贴板")
                 return true
+            }
+            if (p0.key == "source_code") {
+                val webpage: Uri = Uri.parse(p0.summary as String?)
+                val intent = Intent(Intent.ACTION_VIEW, webpage)
+                startActivity(intent)
             }
             return false
         }

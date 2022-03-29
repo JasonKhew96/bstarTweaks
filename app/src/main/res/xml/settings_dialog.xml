@@ -1,11 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="主要功能">
-        <SwitchPreference android:title="强制启用下载" android:key="force_allow_download" />
+        <SwitchPreference
+            android:key="force_allow_download"
+            android:title="强制启用下载" />
     </PreferenceCategory>
     <PreferenceCategory android:title="帐号">
-        <Preference android:title="Access Token" android:key="access_token"/>
-        <Preference android:title="Refresh Token" android:key="refresh_token" />
-        <Preference android:title="Expires" android:key="expires" />
+        <Preference
+            android:key="access_token"
+            android:title="Access Token" />
+        <Preference
+            android:key="refresh_token"
+            android:title="Refresh Token" />
+        <Preference
+            android:key="expires"
+            android:title="Expires" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="关于">
+        <Preference
+            android:key="version"
+            android:title="版本" />
+        <!--        <Preference android:title="检查更新" android:key="check_update" />-->
+        <Preference
+            android:key="source_code"
+            android:summary="https://github.com/JasonKhew96/bstarTweaks"
+            android:title="源码" />
     </PreferenceCategory>
 </PreferenceScreen>
