@@ -38,6 +38,9 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
                 "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
             findPreference("source_code").onPreferenceClickListener = this
 
+            findPreference("bilienv").onPreferenceClickListener = this
+            findPreference("neuronenv").onPreferenceClickListener = this
+
             try {
                 // Lcom/bilibili/lib/account/e;
                 val accountHelper =
@@ -95,6 +98,20 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
                 val webpage: Uri = Uri.parse(p0.summary as String?)
                 val intent = Intent(Intent.ACTION_VIEW, webpage)
                 startActivity(intent)
+                return true
+            }
+            if (p0.key == "bilienv") {
+                val intent = Intent(context, loadClass("com.bilibili.bilienv.BiliEnvActivity"))
+                startActivity(intent)
+                return true
+            }
+            if (p0.key == "neuronenv") {
+                val intent = Intent(
+                    context,
+                    loadClass("tv.danmaku.bili.report.platform.neuron.env.NeuronEnvActivity")
+                )
+                startActivity(intent)
+                return true
             }
             return false
         }

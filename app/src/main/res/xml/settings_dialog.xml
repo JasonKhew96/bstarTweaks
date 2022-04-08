@@ -32,4 +32,12 @@
             android:summary="https://github.com/JasonKhew96/bstarTweaks"
             android:title="源码" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="调试">
+        <Preference
+            android:key="bilienv"
+            android:title="Bili Env Activity" />
+        <Preference
+            android:key="neuronenv"
+            android:title="Neuron Env Activity" />
+    </PreferenceCategory>
 </PreferenceScreen>
