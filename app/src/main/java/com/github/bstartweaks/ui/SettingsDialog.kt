@@ -75,7 +75,6 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
 
                 }
             } catch (t: Throwable) {
-                Log.e(t)
                 findPreference("access_token").summary = "未登录"
                 findPreference("refresh_token").summary = "未登录"
                 findPreference("expires").summary = "未登录"
