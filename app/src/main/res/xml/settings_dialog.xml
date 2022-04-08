@@ -11,12 +11,15 @@
     <PreferenceCategory android:title="帐号">
         <Preference
             android:key="access_token"
+            android:summary="@string/not_login"
             android:title="Access Token" />
         <Preference
             android:key="refresh_token"
+            android:summary="@string/not_login"
             android:title="Refresh Token" />
         <Preference
             android:key="expires"
+            android:summary="@string/not_login"
             android:title="Expires" />
     </PreferenceCategory>
     <PreferenceCategory android:title="关于">

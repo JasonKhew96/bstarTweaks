@@ -4,7 +4,10 @@ package com.github.bstartweaks.ui
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.*
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.preference.PreferenceFragment
@@ -20,7 +23,6 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
 
     companion object {
         private lateinit var outDialog: AlertDialog
-        private lateinit var prefs: SharedPreferences
         const val PREFS_NAME = "bstar_tweaks"
     }
 
@@ -31,45 +33,52 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
             preferenceManager.sharedPreferencesName = PREFS_NAME
             preferenceManager.putObject("mSharedPreferences", modulePrefs)
             addPreferencesFromResource(R.xml.settings_dialog)
-            prefs = preferenceManager.sharedPreferences
 
-            findPreference("version").summary = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+            findPreference("version").summary =
+                "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
             findPreference("source_code").onPreferenceClickListener = this
 
-            // Lcom/bilibili/lib/account/e;
-            val accountHelper = instance.accountHelperClass?.invokeStaticMethodAuto("a", context)
+            try {
+                // Lcom/bilibili/lib/account/e;
+                val accountHelper =
+                    instance.accountHelperClass?.invokeStaticMethodAuto("a", context)
 
-            // Lcom/bilibili/lib/passport/c;
-            val cObj = accountHelper?.getObject("c")
-            // Lcom/bilibili/lib/passport/f;
-            val fObj = cObj?.getObject("a")
-            // Lcom/bilibili/lib/passport/a;
-            val aObj = fObj?.getObject("d")
+                // Lcom/bilibili/lib/passport/c;
+                val cObj = accountHelper?.getObject("c")
+                // Lcom/bilibili/lib/passport/f;
+                val fObj = cObj?.getObject("a")
+                // Lcom/bilibili/lib/passport/a;
+                val aObj = fObj?.getObject("d")
 
-            // Lcom/bilibili/lib/passport/a;
-            val accessToken = aObj?.getObjectAs<String>("c")
-            val refreshToken = aObj?.getObjectAs<String>("d")
-            val expires = aObj?.getObjectAs<Long>("e")
+                // Lcom/bilibili/lib/passport/a;
+                val accessToken = aObj?.getObjectAs<String>("c")
+                val refreshToken = aObj?.getObjectAs<String>("d")
+                val expires = aObj?.getObjectAs<Long>("e")
 
-            if (accessToken != null && refreshToken != null && expires != null) {
-                findPreference("access_token")?.run {
-                    summary = accessToken
-                    onPreferenceClickListener = this@PrefsFragment
+                if (accessToken != null && refreshToken != null && expires != null) {
+                    findPreference("access_token")?.run {
+                        summary = accessToken
+                        onPreferenceClickListener = this@PrefsFragment
+                    }
+                    findPreference("refresh_token")?.run {
+                        summary = refreshToken
+                        onPreferenceClickListener = this@PrefsFragment
+                    }
+                    findPreference("expires")?.run {
+                        summary =
+                            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(expires * 1000)
+                        onPreferenceClickListener = this@PrefsFragment
+                    }
+
                 }
-                findPreference("refresh_token")?.run {
-                    summary = refreshToken
-                    onPreferenceClickListener = this@PrefsFragment
-                }
-                findPreference("expires")?.run {
-                    summary = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(expires * 1000)
-                    onPreferenceClickListener = this@PrefsFragment
-                }
-
-            } else {
+            } catch (t: Throwable) {
+                Log.e(t)
                 findPreference("access_token").summary = "未登录"
                 findPreference("refresh_token").summary = "未登录"
                 findPreference("expires").summary = "未登录"
             }
+
+
         }
 
         override fun onPreferenceClick(p0: android.preference.Preference?): Boolean {
