@@ -11,6 +11,7 @@ import android.preference.PreferenceFragment
 import com.github.bstartweaks.BilibiliPackage.Companion.instance
 import com.github.bstartweaks.BuildConfig
 import com.github.bstartweaks.R
+import com.github.bstartweaks.modulePrefs
 import com.github.kyuubiran.ezxhelper.init.InitFields.appContext
 import com.github.kyuubiran.ezxhelper.utils.*
 import java.text.SimpleDateFormat
@@ -28,6 +29,7 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             preferenceManager.sharedPreferencesName = PREFS_NAME
+            preferenceManager.putObject("mSharedPreferences", modulePrefs)
             addPreferencesFromResource(R.xml.settings_dialog)
             prefs = preferenceManager.sharedPreferences
 
