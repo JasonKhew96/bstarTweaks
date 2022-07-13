@@ -1,1 +1,1 @@
--keep class com.github.bstartweaks.MainHook
+-keep class com.github.bstartweaks.MainHook-keepnames class me.iacn.biliroaming.utils.DexHelper { *; }
