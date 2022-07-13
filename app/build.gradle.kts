@@ -9,7 +9,7 @@ val versionPatch: Int = 0
 val versionBuild: Int = 0
 
 android {
-    compileSdk = 32
+    compileSdk = 33
     buildToolsVersion = "33.0.0"
     ndkVersion = "24.0.8215888"
     namespace = "com.github.bstartweaks"
@@ -17,7 +17,7 @@ android {
     defaultConfig {
         applicationId = "com.github.bstartweaks"
         minSdk = 24
-        targetSdk = 32
+        targetSdk = 33
         versionCode = versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
         versionName = "$versionMajor.$versionMinor.$versionPatch.$versionBuild"
         ndk {
