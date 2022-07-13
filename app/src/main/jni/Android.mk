@@ -3,7 +3,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_MODULE           := dex_helper
 LOCAL_STATIC_LIBRARIES := dex_helper_static
-LOCAL_SRC_FILES        := bstar_tweaks.cc
+LOCAL_SRC_FILES        := biliroaming.cc
 LOCAL_LDLIBS           := -llog
 include $(BUILD_SHARED_LIBRARY)
 

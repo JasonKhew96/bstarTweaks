@@ -9,6 +9,10 @@ import java.lang.reflect.Member;
 
 public class DexHelper implements AutoCloseable, Closeable {
     public static final int NO_CLASS_INDEX = -1;
+
+    static {
+        System.loadLibrary("dex_helper");
+    }
     private final ClassLoader classLoader;
     private final long token;
 
