@@ -10,6 +10,9 @@ val versionBuild: Int = 0
 
 android {
     compileSdk = 32
+    buildToolsVersion = "33.0.0"
+    ndkVersion = "24.0.8215888"
+    namespace = "com.github.bstartweaks"
 
     defaultConfig {
         applicationId = "com.github.bstartweaks"
@@ -17,8 +20,11 @@ android {
         targetSdk = 32
         versionCode = versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
         versionName = "$versionMajor.$versionMinor.$versionPatch.$versionBuild"
+        ndk {
+            abiFilters += listOf("arm64-v8a")
+            abiFilters += listOf("armeabi-v7a", "x86", "x86_64")
+        }
     }
-
     buildTypes {
         named("release") {
             isShrinkResources = true
@@ -26,11 +32,9 @@ android {
             proguardFiles("proguard-rules.pro")
         }
     }
-
     androidResources {
         additionalParameters("--allow-reserved-package-id", "--package-id", "0x45")
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -38,10 +42,23 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
-    namespace = "com.github.bstartweaks"
+    externalNativeBuild {
+        ndkBuild {
+            path = file("src/main/jni/Android.mk")
+        }
+    }
+    packagingOptions {
+        resources {
+            excludes += "**"
+        }
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
 }
 
 dependencies {
+    implementation("androidx.annotation:annotation:1.4.0")
     implementation("com.github.kyuubiran:EzXHelper:0.7.8")
     compileOnly("de.robv.android.xposed:api:82")
 }
