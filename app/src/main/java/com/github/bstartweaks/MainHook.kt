@@ -29,7 +29,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                 EzXHelperInit.setEzClassLoader(appContext.classLoader)
                 // Init hooks
                 BilibiliPackage()
-                initHooks(JsonHook, ParamHook, SettingsHook, UrlHook)
+                initHooks(JsonHook, ParamHook, SettingsHook, UrlHook, DebugHook)
             }
         }
     }

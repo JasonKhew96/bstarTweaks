@@ -13,14 +13,6 @@ import com.github.kyuubiran.ezxhelper.utils.*
 
 object SettingsHook : BaseHook() {
     override fun init() {
-        findMethod("com.bilibili.base.e") {
-            parameterTypes.size == 4 && returnType == Boolean::class.java && parameterTypes[0] == Context::class.java && parameterTypes[1] == String::class.java && parameterTypes[2] == String::class.java && parameterTypes[3] == Boolean::class.java
-        }.hookAfter { param ->
-            if (param.args[2] == "pref_is_show_debug_tool") {
-                param.result = true
-            }
-        }
-
         instance.helpFragmentClass?.let {
             findMethod(it) {
                 name == "onCreateView" && parameterTypes.size == 3 && parameterTypes[0] == LayoutInflater::class.java && parameterTypes[1] == ViewGroup::class.java && parameterTypes[2] == Bundle::class.java
