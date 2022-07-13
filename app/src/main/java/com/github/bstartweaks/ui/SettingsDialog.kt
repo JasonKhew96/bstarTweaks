@@ -52,7 +52,7 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
                     true,
                 ).asSequence().firstNotNullOfOrNull {
                     dexHelper.decodeMethodIndex(it)?.declaringClass
-                } ?: throw Throwable("Class not found")
+                } ?: throw Throwable("biliAccountClass not found")
                 val biliPassportClass = dexHelper.findMethodUsingString(
                     "BiliPassport",
                     false,
@@ -66,7 +66,7 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
                     true,
                 ).asSequence().firstNotNullOfOrNull {
                     dexHelper.decodeMethodIndex(it)?.declaringClass
-                } ?: throw Throwable("Class not found")
+                } ?: throw Throwable("biliPassportClass not found")
                 val passportControllerClass = dexHelper.findMethodUsingString(
                     "PassportController",
                     false,
@@ -80,7 +80,7 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
                     true,
                 ).asSequence().firstNotNullOfOrNull {
                     dexHelper.decodeMethodIndex(it)?.declaringClass
-                } ?: throw Throwable("Class not found")
+                } ?: throw Throwable("passportControllerClass not found")
                 val accessTokenClass = dexHelper.findMethodUsingString(
                     "AccessToken{mExpiresIn=",
                     false,
@@ -94,23 +94,23 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
                     true,
                 ).asSequence().firstNotNullOfOrNull {
                     dexHelper.decodeMethodIndex(it)?.declaringClass
-                } ?: throw Throwable("Class not found")
+                } ?: throw Throwable("accessTokenClass not found")
 
                 val biliAccountClassMethod = biliAccountClass.declaredMethods.firstOrNull {
                     it.isStatic && it.parameterTypes.size == 1 && it.parameterTypes[0] == Context::class.java && it.returnType == biliAccountClass
-                } ?: throw Throwable("Method not found")
+                } ?: throw Throwable("biliAccountClassMethod not found")
 
                 val biliPassportClassField = biliAccountClass.declaredFields.firstOrNull {
                     it.type == biliPassportClass
-                } ?: throw Throwable("Field not found")
+                } ?: throw Throwable("biliPassportClassField not found")
 
                 val passportControllerClassField = biliPassportClass.declaredFields.firstOrNull {
                     it.type == passportControllerClass
-                } ?: throw Throwable("Field not found")
+                } ?: throw Throwable("passportControllerClassField not found")
 
                 val accessTokenClassField = passportControllerClass.declaredFields.firstOrNull {
                     it.type == accessTokenClass
-                } ?: throw Throwable("Field not found")
+                } ?: throw Throwable("accessTokenClassField not found")
 
                 val biliAccountObj = biliAccountClassMethod.invoke(null, context)
                 val biliPassportObj = biliPassportClassField.get(biliAccountObj)
