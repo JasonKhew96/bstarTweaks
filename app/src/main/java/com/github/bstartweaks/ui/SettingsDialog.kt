@@ -38,9 +38,6 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
                 "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
             findPreference("source_code").onPreferenceClickListener = this
 
-            findPreference("bilienv").onPreferenceClickListener = this
-            findPreference("neuronenv").onPreferenceClickListener = this
-
             try {
                 val biliAccountClass = dexHelper.findMethodUsingString(
                     "BiliAccount",
@@ -123,9 +120,9 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
 
 //                var expiresIn: Long = 0L
 //                var mid: Long = 0L
-                var accessToken: String = ""
-                var refreshToken: String = ""
-                var expires: Long = 0L
+                var accessToken = ""
+                var refreshToken = ""
+                var expires = 0L
 
                 accessTokenClass.declaredFields.forEach { f ->
                     f.annotations.forEach { a ->
@@ -185,19 +182,6 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
             if (p0.key == "source_code") {
                 val webpage: Uri = Uri.parse(p0.summary as String?)
                 val intent = Intent(Intent.ACTION_VIEW, webpage)
-                startActivity(intent)
-                return true
-            }
-            if (p0.key == "bilienv") {
-                val intent = Intent(context, loadClass("com.bilibili.bilienv.BiliEnvActivity"))
-                startActivity(intent)
-                return true
-            }
-            if (p0.key == "neuronenv") {
-                val intent = Intent(
-                    context,
-                    loadClass("tv.danmaku.bili.report.platform.neuron.env.NeuronEnvActivity")
-                )
                 startActivity(intent)
                 return true
             }
