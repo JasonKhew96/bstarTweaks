@@ -11,7 +11,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.preference.PreferenceFragment
-import com.github.bstartweaks.BilibiliPackage.Companion.instance
+import com.github.bstartweaks.BilibiliPackage.Companion.dexHelper
 import com.github.bstartweaks.BuildConfig
 import com.github.bstartweaks.R
 import com.github.bstartweaks.modulePrefs
@@ -42,39 +42,128 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
             findPreference("neuronenv").onPreferenceClickListener = this
 
             try {
-                // Lcom/bilibili/lib/account/e;
-                val accountHelper =
-                    instance.accountHelperClass?.invokeStaticMethodAuto("a", context)
+                val biliAccountClass = dexHelper.findMethodUsingString(
+                    "BiliAccount",
+                    false,
+                    dexHelper.encodeClassIndex(Void.TYPE),
+                    0,
+                    null,
+                    -1,
+                    null,
+                    null,
+                    null,
+                    true,
+                ).asSequence().firstNotNullOfOrNull {
+                    dexHelper.decodeMethodIndex(it)?.declaringClass
+                } ?: throw Throwable("Class not found")
+                val biliPassportClass = dexHelper.findMethodUsingString(
+                    "BiliPassport",
+                    false,
+                    -1,
+                    0,
+                    null,
+                    -1,
+                    null,
+                    null,
+                    null,
+                    true,
+                ).asSequence().firstNotNullOfOrNull {
+                    dexHelper.decodeMethodIndex(it)?.declaringClass
+                } ?: throw Throwable("Class not found")
+                val passportControllerClass = dexHelper.findMethodUsingString(
+                    "PassportController",
+                    false,
+                    -1,
+                    1,
+                    null,
+                    -1,
+                    null,
+                    null,
+                    null,
+                    true,
+                ).asSequence().firstNotNullOfOrNull {
+                    dexHelper.decodeMethodIndex(it)?.declaringClass
+                } ?: throw Throwable("Class not found")
+                val accessTokenClass = dexHelper.findMethodUsingString(
+                    "AccessToken{mExpiresIn=",
+                    false,
+                    -1,
+                    0,
+                    null,
+                    -1,
+                    null,
+                    null,
+                    null,
+                    true,
+                ).asSequence().firstNotNullOfOrNull {
+                    dexHelper.decodeMethodIndex(it)?.declaringClass
+                } ?: throw Throwable("Class not found")
 
-                // Lcom/bilibili/lib/passport/c;
-                val cObj = accountHelper?.getObject("c")
-                // Lcom/bilibili/lib/passport/f;
-                val fObj = cObj?.getObject("a")
-                // Lcom/bilibili/lib/passport/a;
-                val aObj = fObj?.getObject("d")
+                val biliAccountClassMethod = biliAccountClass.declaredMethods.firstOrNull {
+                    it.isStatic && it.parameterTypes.size == 1 && it.parameterTypes[0] == Context::class.java && it.returnType == biliAccountClass
+                } ?: throw Throwable("Method not found")
 
-                // Lcom/bilibili/lib/passport/a;
-                val accessToken = aObj?.getObjectAs<String>("c")
-                val refreshToken = aObj?.getObjectAs<String>("d")
-                val expires = aObj?.getObjectAs<Long>("e")
+                val biliPassportClassField = biliAccountClass.declaredFields.firstOrNull {
+                    it.type == biliPassportClass
+                } ?: throw Throwable("Field not found")
 
-                if (accessToken != null && refreshToken != null && expires != null) {
-                    findPreference("access_token")?.run {
-                        summary = accessToken
-                        onPreferenceClickListener = this@PrefsFragment
+                val passportControllerClassField = biliPassportClass.declaredFields.firstOrNull {
+                    it.type == passportControllerClass
+                } ?: throw Throwable("Field not found")
+
+                val accessTokenClassField = passportControllerClass.declaredFields.firstOrNull {
+                    it.type == accessTokenClass
+                } ?: throw Throwable("Field not found")
+
+                val biliAccountObj = biliAccountClassMethod.invoke(null, context)
+                val biliPassportObj = biliPassportClassField.get(biliAccountObj)
+                val passportControllerObj = passportControllerClassField.get(biliPassportObj)
+                val accessTokenObj = accessTokenClassField.get(passportControllerObj)
+                Log.d("accessTokenObj: $accessTokenObj")
+
+//                var expiresIn: Long = 0L
+//                var mid: Long = 0L
+                var accessToken: String = ""
+                var refreshToken: String = ""
+                var expires: Long = 0L
+
+                accessTokenClass.declaredFields.forEach { f ->
+                    f.annotations.forEach { a ->
+                        a.toString().let { annotation ->
+//                            if (annotation.contains("name=expires_in")) {
+//                                expiresIn = f.getLong(accessTokenObj)
+//                            } else if (annotation.contains("name=mid")) {
+//                                mid = f.getLong(accessTokenObj)
+//                            }
+                            if (annotation.contains("name=access_token")) {
+                                f.get(accessTokenObj)?.let {
+                                    accessToken = it.toString()
+                                }
+                            } else if (annotation.contains("name=refresh_token")) {
+                                f.get(accessTokenObj)?.let {
+                                    refreshToken = it.toString()
+                                }
+                            } else if (annotation.contains("name=expires")) {
+                                expires = f.getLong(accessTokenObj)
+                            }
+                        }
                     }
-                    findPreference("refresh_token")?.run {
-                        summary = refreshToken
-                        onPreferenceClickListener = this@PrefsFragment
-                    }
-                    findPreference("expires")?.run {
-                        summary =
-                            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(expires * 1000)
-                        onPreferenceClickListener = this@PrefsFragment
-                    }
+                }
 
+                findPreference("access_token")?.run {
+                    summary = accessToken
+                    onPreferenceClickListener = this@PrefsFragment
+                }
+                findPreference("refresh_token")?.run {
+                    summary = refreshToken
+                    onPreferenceClickListener = this@PrefsFragment
+                }
+                findPreference("expires")?.run {
+                    summary = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(expires * 1000)
+                    onPreferenceClickListener = this@PrefsFragment
                 }
             } catch (t: Throwable) {
+                Log.d(t)
                 findPreference("access_token").summary = "未登录"
                 findPreference("refresh_token").summary = "未登录"
                 findPreference("expires").summary = "未登录"

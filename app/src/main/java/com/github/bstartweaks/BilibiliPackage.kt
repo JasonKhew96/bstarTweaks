@@ -23,9 +23,6 @@ class BilibiliPackage {
     val bangumiUniformSeason by lazy { loadClassOrNull("com.bilibili.bangumi.data.page.detail.entity.BangumiUniformSeason") }
     val fastJsonClass by lazy { loadClassOrNull("com.alibaba.fastjson.JSON") }
 
-    // info hook
-    val accountHelperClass by lazy { loadClassOrNull("com.bilibili.lib.account.e") }
-
     val helpFragmentClass by lazy { loadClassOrNull("com.bilibili.app.preferences.fragment.HelpFragment") }
     val preferenceClass by lazy { loadClassOrNull("androidx.preference.Preference") }
     val onPreferenceClickListenerClass by lazy { loadClassOrNull("androidx.preference.Preference\$OnPreferenceClickListener") }
