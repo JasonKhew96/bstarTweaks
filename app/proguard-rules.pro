@@ -1,1 +1,1 @@
--keep class com.github.bstartweaks.MainHook-keepnames class me.iacn.biliroaming.utils.DexHelper { *; }
+-keep class com.github.bstartweaks.MainHook-keepclasseswithmembers class me.iacn.biliroaming.utils.DexHelper { native <methods>; long token; java.lang.ClassLoader classLoader;}
