@@ -9,12 +9,17 @@ object ParamHook : BaseHook() {
         findMethod(TreeMap::class.java) {
             name == "put"
         }.hookBefore { param ->
-            if (param.args[0].javaClass != String::class.java) return@hookBefore
+            if (param.args[0] == null || param.args[0].javaClass != String::class.java) return@hookBefore
             when (param.args[0] as String) {
                 "s_locale", "c_locale" -> {
                     val value = param.args[1] as String
-                    if (value == "zh_CN" || value == "zh_TW") {
-                        param.args[1] = "zh_SG"
+                    if (value == "") return@hookBefore
+                    val forbiddenCountry = listOf("CN", "HK", "TW", "MO")
+                    val locale = Locale.forLanguageTag(value)
+                    if (locale.country == "" || locale.country in forbiddenCountry) {
+                        param.args[1] =
+                            Locale.Builder().setLanguage(locale.language).setRegion("SG").build()
+                                .toLanguageTag()
                     }
                 }
                 "sim_code" -> {
