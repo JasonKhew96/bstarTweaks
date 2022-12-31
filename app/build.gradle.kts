@@ -60,8 +60,8 @@ android {
 }
 
 dependencies {
-    implementation("androidx.annotation:annotation:1.4.0")
-    implementation("com.github.kyuubiran:EzXHelper:0.7.8")
+    implementation("androidx.annotation:annotation:1.5.0")
+    implementation("com.github.kyuubiran:EzXHelper:1.0.3")
     compileOnly("de.robv.android.xposed:api:82")
 }
 
