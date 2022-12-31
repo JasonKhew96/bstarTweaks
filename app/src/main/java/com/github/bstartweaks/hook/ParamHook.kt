@@ -15,11 +15,9 @@ object ParamHook : BaseHook() {
                     val value = param.args[1] as String
                     if (value == "") return@hookBefore
                     val forbiddenCountry = listOf("CN", "HK", "TW", "MO")
-                    val locale = Locale.forLanguageTag(value)
-                    if (locale.country == "" || locale.country in forbiddenCountry) {
-                        param.args[1] =
-                            Locale.Builder().setLanguage(locale.language).setRegion("SG").build()
-                                .toLanguageTag()
+                    val (language, country) = value.split("_")
+                    if (country == "" || country in forbiddenCountry) {
+                        param.args[1] = "${language}_SG"
                     }
                 }
                 "sim_code" -> {
