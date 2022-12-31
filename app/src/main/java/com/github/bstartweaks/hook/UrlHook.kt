@@ -6,16 +6,17 @@ import android.net.Uri
 import com.github.bstartweaks.modulePrefs
 import com.github.kyuubiran.ezxhelper.utils.findAllMethods
 import com.github.kyuubiran.ezxhelper.utils.hookBefore
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
 
 
 object UrlHook : BaseHook() {
-    private fun String.isBstarUrl(): Boolean {
-        return this.startsWith("https://www.bilibili.tv/")
-    }
+    private fun String.isBstarShortUrl() = startsWith("https://bili.im/")
 
-    private fun String.hasExtraParam(): Boolean {
-        return this.startsWith("from")
-    }
+    private fun String.isBstarUrl() = startsWith("https://www.bilibili.tv/")
+
+    private fun String.hasExtraParam() = startsWith("from")
 
     private fun clearExtraParams(url: String): String {
         val oldUri = Uri.parse(url)
@@ -29,22 +30,41 @@ object UrlHook : BaseHook() {
         return newUri.build().toString()
     }
 
+    private fun getOriginalLocation(url: String): String {
+        try {
+            val httpURLConnection = URL(url).openConnection() as HttpURLConnection
+            httpURLConnection.apply {
+                connectTimeout = 5000
+                readTimeout = 5000
+                instanceFollowRedirects = false
+                connect()
+                return getHeaderField("Location") ?: url
+            }
+        } catch (e: IOException) {
+            return url
+        }
+    }
+
     override fun init() {
         if (!modulePrefs.getBoolean("clean_urls", true)) return
         findAllMethods(Intent::class.java) { name == "createChooser" }.hookBefore { param ->
             val intent = param.args[0] as Intent
-            val extraText = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return@hookBefore
-            if (!extraText.isBstarUrl()) {
-                return@hookBefore
+            var extraText = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return@hookBefore
+            if (extraText.isBstarShortUrl()) {
+                extraText = getOriginalLocation(extraText)
             }
-            intent.putExtra(Intent.EXTRA_TEXT, clearExtraParams(extraText))
+            if (extraText.isBstarUrl()) {
+                intent.putExtra(Intent.EXTRA_TEXT, clearExtraParams(extraText))
+            }
         }
         findAllMethods(ClipData::class.java) { name == "newPlainText" }.hookBefore { param ->
-            val text = (param.args[1] as CharSequence).toString()
-            if (!text.isBstarUrl()) {
-                return@hookBefore
+            var text = (param.args[1] as CharSequence).toString()
+            if (text.isBstarShortUrl()) {
+                text = getOriginalLocation(text)
             }
-            param.args[1] = clearExtraParams(text)
+            if (text.isBstarUrl()) {
+                param.args[1] = clearExtraParams(text)
+            }
         }
     }
 }
