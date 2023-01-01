@@ -8,7 +8,7 @@ import com.github.kyuubiran.ezxhelper.utils.hookBefore
 object DebugHook : BaseHook() {
     override fun init() {
         val blkvGetBooleanMethod = dexKit.findMethodUsingString(
-            usingString = "return blkv boolean --> ",
+            usingString = "^return blkv boolean --> $",
             methodReturnType = Boolean::class.java.name,
             methodParamTypes = arrayOf(
                 Context::class.java.name,

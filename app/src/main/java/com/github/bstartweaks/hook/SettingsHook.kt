@@ -43,22 +43,22 @@ object SettingsHook : BaseHook() {
 
         try {
             val biliAccountClass = MainHook.dexKit.findMethodUsingString(
-                usingString = "BiliAccount",
+                usingString = "^BiliAccount$",
                 methodReturnType = Void.TYPE.name,
                 methodParamTypes = emptyArray(),
             ).firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
                 ?: throw ClassNotFoundException()
             val biliPassportClass = MainHook.dexKit.findMethodUsingString(
-                usingString = "BiliPassport",
+                usingString = "^BiliPassport$",
                 methodParamTypes = emptyArray(),
             ).firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
                 ?: throw ClassNotFoundException()
             val passportControllerClass = MainHook.dexKit.findMethodUsingString(
-                usingString = "PassportController",
+                usingString = "^PassportController$",
             ).firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
                 ?: throw ClassNotFoundException()
             val accessTokenClass = MainHook.dexKit.findMethodUsingString(
-                usingString = "AccessToken{mExpiresIn=",
+                usingString = "^AccessToken{mExpiresIn=$",
                 methodName = "toString",
                 methodReturnType = String::class.java.name,
             ).firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
