@@ -2,12 +2,11 @@ package com.github.bstartweaks.hook
 
 import com.github.kyuubiran.ezxhelper.utils.findMethod
 import com.github.kyuubiran.ezxhelper.utils.hookReplace
-import com.github.kyuubiran.ezxhelper.utils.loadClassOrNull
+import com.github.kyuubiran.ezxhelper.utils.loadClass
 
 object AdsHook : BaseHook() {
     override fun init() {
-        val tpBaseAdapterClass = loadClassOrNull("com.tradplus.ads.base.adapter.TPBaseAdapter")
-            ?: throw ClassNotFoundException()
+        val tpBaseAdapterClass = loadClass("com.tradplus.ads.base.adapter.TPBaseAdapter")
 
         findMethod(tpBaseAdapterClass) {
             name == "loadAd"

@@ -76,8 +76,7 @@ object SettingsHook : BaseHook() {
         passportControllerClassName = passportControllerClass.name
         accessTokenClassName = accessTokenClass.name
 
-        val jsonFieldClass = loadClassOrNull("com.alibaba.fastjson.annotation.JSONField")
-            ?: throw ClassNotFoundException()
+        val jsonFieldClass = loadClass("com.alibaba.fastjson.annotation.JSONField")
         val accessTokenField = dexKit.findFieldUsingAnnotation(
             annotationClass = jsonFieldClass.name,
             annotationUsingString = "access_token",
@@ -135,9 +134,7 @@ object SettingsHook : BaseHook() {
             loadCachedHook()
         }
 
-        val helpFragmentClass =
-            loadClassOrNull("com.bilibili.app.preferences.fragment.HelpFragment")
-                ?: throw ClassNotFoundException()
+        val helpFragmentClass = loadClass("com.bilibili.app.preferences.fragment.HelpFragment")
 
         var isTokenClassLoaded = false
 
