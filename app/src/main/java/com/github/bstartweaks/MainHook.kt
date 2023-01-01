@@ -2,6 +2,7 @@ package com.github.bstartweaks
 
 import android.app.Application
 import android.content.Context
+import com.github.bstartweaks.hook.AdsHook
 import com.github.bstartweaks.hook.BaseHook
 import com.github.bstartweaks.hook.DebugHook
 import com.github.bstartweaks.hook.JsonHook
@@ -58,7 +59,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
 
                 initDexKit(context.applicationInfo.sourceDir)
                 // Init hooks
-                initHooks(JsonHook, ParamHook, SettingsHook, UrlHook, DebugHook)
+                initHooks(JsonHook, ParamHook, SettingsHook, UrlHook, DebugHook, AdsHook)
                 closeDexKit()
             }
         }
