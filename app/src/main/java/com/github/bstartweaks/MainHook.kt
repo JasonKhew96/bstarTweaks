@@ -11,6 +11,7 @@ import com.github.bstartweaks.hook.SettingsHook
 import com.github.bstartweaks.hook.UrlHook
 import com.github.kyuubiran.ezxhelper.init.EzXHelperInit
 import com.github.kyuubiran.ezxhelper.init.InitFields.appContext
+import com.github.kyuubiran.ezxhelper.init.InitFields.modulePath
 import com.github.kyuubiran.ezxhelper.utils.Log
 import com.github.kyuubiran.ezxhelper.utils.Log.logexIfThrow
 import com.github.kyuubiran.ezxhelper.utils.findMethod
@@ -19,6 +20,7 @@ import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.IXposedHookZygoteInit
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import io.luckypray.dexkit.DexKitBridge
+import java.io.File
 
 private const val PACKAGE_NAME_HOOKED = "com.bstar.intl"
 private const val TAG = "bstarTweaks"
@@ -27,9 +29,21 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
 
     companion object {
         lateinit var dexKit: DexKitBridge
+        var isDexKitNeeded = false
 
         fun initDexKit(path: String) {
             if (::dexKit.isInitialized) return
+
+            val moduleLastModify = File(modulePath).lastModified()
+            @Suppress("DEPRECATION") val hostLastModify =
+                appContext.packageManager.getPackageInfo(appContext.packageName, 0).lastUpdateTime
+            val hookLastModify = modulePrefs.getLong("hook_last_modify", 0)
+            if (hookLastModify < hostLastModify || hookLastModify < moduleLastModify) {
+                isDexKitNeeded = true
+            } else {
+                return
+            }
+
             try {
                 System.loadLibrary("dexkit")
             } catch (e: Throwable) {
@@ -41,6 +55,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         fun closeDexKit() {
             if (::dexKit.isInitialized) {
                 dexKit.close()
+                modulePrefs.edit().putLong("hook_last_modify", System.currentTimeMillis()).apply()
             }
         }
     }
@@ -57,10 +72,8 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                 EzXHelperInit.initAppContext(context)
                 EzXHelperInit.setEzClassLoader(appContext.classLoader)
 
-                initDexKit(context.applicationInfo.sourceDir)
                 // Init hooks
                 initHooks(JsonHook, ParamHook, SettingsHook, UrlHook, DebugHook, AdsHook)
-                closeDexKit()
             }
         }
     }
@@ -73,6 +86,8 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
     }
 
     private fun initHooks(vararg hook: BaseHook) {
+        initDexKit(appContext.applicationInfo.sourceDir)
+
         hook.forEach {
             runCatching {
                 if (it.isInit) return@forEach
@@ -82,5 +97,7 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                 Log.i("Inited hook in ${System.currentTimeMillis() - startMs}ms: ${it.javaClass.simpleName}")
             }.logexIfThrow("Failed init hook: ${it.javaClass.simpleName}")
         }
+
+        closeDexKit()
     }
 }
