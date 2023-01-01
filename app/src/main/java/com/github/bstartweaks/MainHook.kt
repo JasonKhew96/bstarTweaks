@@ -26,10 +26,22 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
 
     companion object {
         lateinit var dexKit: DexKitBridge
-    }
 
-    init {
-        System.loadLibrary("dexkit")
+        fun initDexKit(path: String) {
+            if (::dexKit.isInitialized) return
+            try {
+                System.loadLibrary("dexkit")
+            } catch (e: Throwable) {
+                Log.e("load dexkit library failed", e)
+            }
+            dexKit = DexKitBridge.create(path) ?: return
+        }
+
+        fun closeDexKit() {
+            if (::dexKit.isInitialized) {
+                dexKit.close()
+            }
+        }
     }
 
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
@@ -44,14 +56,10 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
                 EzXHelperInit.initAppContext(context)
                 EzXHelperInit.setEzClassLoader(appContext.classLoader)
 
-                val tmp = DexKitBridge.create(context.applicationInfo.sourceDir)
-                if (tmp == null) {
-                    Log.e("DexKit init failed")
-                    return@hookAfter
-                }
-                dexKit = tmp
+                initDexKit(context.applicationInfo.sourceDir)
                 // Init hooks
                 initHooks(JsonHook, ParamHook, SettingsHook, UrlHook, DebugHook)
+                closeDexKit()
             }
         }
     }
@@ -67,9 +75,10 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
         hook.forEach {
             runCatching {
                 if (it.isInit) return@forEach
+                val startMs = System.currentTimeMillis()
                 it.init()
                 it.isInit = true
-                Log.i("Inited hook: ${it.javaClass.simpleName}")
+                Log.i("Inited hook in ${System.currentTimeMillis() - startMs}ms: ${it.javaClass.simpleName}")
             }.logexIfThrow("Failed init hook: ${it.javaClass.simpleName}")
         }
     }
