@@ -1,38 +1,29 @@
 package com.github.bstartweaks.hook
 
 import android.content.Context
-import com.github.bstartweaks.BilibiliPackage
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
+import com.github.bstartweaks.MainHook.Companion.dexKit
+import com.github.kyuubiran.ezxhelper.utils.findMethod
+import com.github.kyuubiran.ezxhelper.utils.hookBefore
 
 object DebugHook : BaseHook() {
     override fun init() {
-        val blkvGetBooleanMethod = BilibiliPackage.dexHelper.findMethodUsingString(
-            "return blkv boolean --> ",
-            false,
-            BilibiliPackage.dexHelper.encodeClassIndex(Boolean::class.java),
-            4,
-            null,
-            -1,
-            longArrayOf(
-                BilibiliPackage.dexHelper.encodeClassIndex(Context::class.java),
-                BilibiliPackage.dexHelper.encodeClassIndex(String::class.java),
-                BilibiliPackage.dexHelper.encodeClassIndex(String::class.java),
-                BilibiliPackage.dexHelper.encodeClassIndex(Boolean::class.java)
+        val blkvGetBooleanMethod = dexKit.findMethodUsingString(
+            usingString = "return blkv boolean --> ",
+            methodReturnType = Boolean::class.java.name,
+            methodParamTypes = arrayOf(
+                Context::class.java.name,
+                String::class.java.name,
+                String::class.java.name,
+                Boolean::class.java.name
             ),
-            null,
-            null,
-            true,
-        ).asSequence().firstNotNullOfOrNull {
-            BilibiliPackage.dexHelper.decodeMethodIndex(it)
-        } ?: return
+        ).firstNotNullOfOrNull { it } ?: throw NoSuchMethodError()
 
-        XposedBridge.hookMethod(blkvGetBooleanMethod, object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (param.args[2] == "pref_is_show_debug_tool") {
-                    param.result = true
-                }
+        findMethod(blkvGetBooleanMethod.declaringClassName) {
+            name == blkvGetBooleanMethod.name
+        }.hookBefore { param ->
+            if (param.args[2] == "pref_is_show_debug_tool") {
+                param.result = true
             }
-        })
+        }
     }
 }

@@ -1,16 +1,19 @@
 package com.github.bstartweaks.ui
 
 import android.content.Context
-import com.github.bstartweaks.BilibiliPackage.Companion.instance
 import com.github.kyuubiran.ezxhelper.utils.argTypes
 import com.github.kyuubiran.ezxhelper.utils.args
 import com.github.kyuubiran.ezxhelper.utils.invokeMethodAuto
+import com.github.kyuubiran.ezxhelper.utils.loadClassOrNull
 import com.github.kyuubiran.ezxhelper.utils.newInstance
 import java.lang.reflect.Proxy
 
 class Preference(context: Context) {
+    private val preferenceClass by lazy { loadClassOrNull("androidx.preference.Preference") }
+    private val onPreferenceClickListenerClass by lazy { loadClassOrNull("androidx.preference.Preference\$OnPreferenceClickListener") }
+
     private val preference =
-        instance.preferenceClass?.newInstance(args(context), argTypes(Context::class.java))
+        preferenceClass?.newInstance(args(context), argTypes(Context::class.java))
 
     var title: CharSequence
         get() {
@@ -37,7 +40,7 @@ class Preference(context: Context) {
         }
 
     fun setOnPreferenceClickListener(onPreferenceClickListener: OnPreferenceClickListener) {
-        val someInterface = instance.onPreferenceClickListenerClass
+        val someInterface = onPreferenceClickListenerClass
         val instance = Proxy.newProxyInstance(
             someInterface?.classLoader, arrayOf(someInterface)
         ) { _, _, _ -> onPreferenceClickListener.onPreferenceClick(this@Preference) }

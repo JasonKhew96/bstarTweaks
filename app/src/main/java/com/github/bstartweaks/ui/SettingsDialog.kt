@@ -11,7 +11,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.preference.PreferenceFragment
-import com.github.bstartweaks.BilibiliPackage.Companion.dexHelper
 import com.github.bstartweaks.BuildConfig
 import com.github.bstartweaks.R
 import com.github.bstartweaks.modulePrefs
@@ -19,8 +18,8 @@ import com.github.kyuubiran.ezxhelper.init.InitFields.appContext
 import com.github.kyuubiran.ezxhelper.utils.*
 import java.text.SimpleDateFormat
 
-class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
-
+class SettingsDialog(context: Context, accessToken: String, refreshToken: String, expires: Long) :
+    AlertDialog.Builder(context) {
     companion object {
         private lateinit var outDialog: AlertDialog
         const val PREFS_NAME = "bstar_tweaks"
@@ -38,135 +37,19 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
                 "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
             findPreference("source_code").onPreferenceClickListener = this
 
-            try {
-                val biliAccountClass = dexHelper.findMethodUsingString(
-                    "BiliAccount",
-                    false,
-                    dexHelper.encodeClassIndex(Void.TYPE),
-                    0,
-                    null,
-                    -1,
-                    null,
-                    null,
-                    null,
-                    true,
-                ).asSequence().firstNotNullOfOrNull {
-                    dexHelper.decodeMethodIndex(it)?.declaringClass
-                } ?: throw Throwable("biliAccountClass not found")
-                val biliPassportClass = dexHelper.findMethodUsingString(
-                    "BiliPassport",
-                    false,
-                    -1,
-                    0,
-                    null,
-                    -1,
-                    null,
-                    null,
-                    null,
-                    true,
-                ).asSequence().firstNotNullOfOrNull {
-                    dexHelper.decodeMethodIndex(it)?.declaringClass
-                } ?: throw Throwable("biliPassportClass not found")
-                val passportControllerClass = dexHelper.findMethodUsingString(
-                    "PassportController",
-                    false,
-                    -1,
-                    1,
-                    null,
-                    -1,
-                    null,
-                    null,
-                    null,
-                    true,
-                ).asSequence().firstNotNullOfOrNull {
-                    dexHelper.decodeMethodIndex(it)?.declaringClass
-                } ?: throw Throwable("passportControllerClass not found")
-                val accessTokenClass = dexHelper.findMethodUsingString(
-                    "AccessToken{mExpiresIn=",
-                    false,
-                    -1,
-                    0,
-                    null,
-                    -1,
-                    null,
-                    null,
-                    null,
-                    true,
-                ).asSequence().firstNotNullOfOrNull {
-                    dexHelper.decodeMethodIndex(it)?.declaringClass
-                } ?: throw Throwable("accessTokenClass not found")
-
-                val biliAccountClassMethod = biliAccountClass.declaredMethods.firstOrNull {
-                    it.isStatic && it.parameterTypes.size == 1 && it.parameterTypes[0] == Context::class.java && it.returnType == biliAccountClass
-                } ?: throw Throwable("biliAccountClassMethod not found")
-
-                val biliPassportClassField = biliAccountClass.declaredFields.firstOrNull {
-                    it.type == biliPassportClass
-                } ?: throw Throwable("biliPassportClassField not found")
-
-                val passportControllerClassField = biliPassportClass.declaredFields.firstOrNull {
-                    it.type == passportControllerClass
-                } ?: throw Throwable("passportControllerClassField not found")
-
-                val accessTokenClassField = passportControllerClass.declaredFields.firstOrNull {
-                    it.type == accessTokenClass
-                } ?: throw Throwable("accessTokenClassField not found")
-
-                val biliAccountObj = biliAccountClassMethod.invoke(null, context)
-                val biliPassportObj = biliPassportClassField.get(biliAccountObj)
-                val passportControllerObj = passportControllerClassField.get(biliPassportObj)
-                val accessTokenObj = accessTokenClassField.get(passportControllerObj)
-                Log.d("accessTokenObj: $accessTokenObj")
-
-//                var expiresIn: Long = 0L
-//                var mid: Long = 0L
-                var accessToken = ""
-                var refreshToken = ""
-                var expires = 0L
-
-                accessTokenClass.declaredFields.forEach { f ->
-                    f.annotations.forEach { a ->
-                        a.toString().let { annotation ->
-//                            if (annotation.contains("name=expires_in")) {
-//                                expiresIn = f.getLong(accessTokenObj)
-//                            } else if (annotation.contains("name=mid")) {
-//                                mid = f.getLong(accessTokenObj)
-//                            }
-                            if (annotation.contains("name=access_token")) {
-                                f.get(accessTokenObj)?.let {
-                                    accessToken = it.toString()
-                                }
-                            } else if (annotation.contains("name=refresh_token")) {
-                                f.get(accessTokenObj)?.let {
-                                    refreshToken = it.toString()
-                                }
-                            } else if (annotation.contains("name=expires")) {
-                                expires = f.getLong(accessTokenObj)
-                            }
-                        }
-                    }
-                }
-
-                findPreference("access_token")?.run {
-                    summary = accessToken
-                    onPreferenceClickListener = this@PrefsFragment
-                }
-                findPreference("refresh_token")?.run {
-                    summary = refreshToken
-                    onPreferenceClickListener = this@PrefsFragment
-                }
-                findPreference("expires")?.run {
-                    summary = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(expires * 1000)
-                    onPreferenceClickListener = this@PrefsFragment
-                }
-            } catch (t: Throwable) {
-                Log.d(t)
-                findPreference("access_token").summary = "未登录"
-                findPreference("refresh_token").summary = "未登录"
-                findPreference("expires").summary = "未登录"
+            findPreference("access_token").let {
+                it.summary = arguments?.getString("access_token")
+                it.onPreferenceClickListener = this
             }
-
-
+            findPreference("refresh_token").let {
+                it.summary = arguments?.getString("refresh_token")
+                it.onPreferenceClickListener = this
+            }
+            findPreference("expires").let {
+                val expires = arguments?.getLong("expires") ?: return@let
+                it.summary = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(expires * 1000)
+                it.onPreferenceClickListener = this
+            }
         }
 
         override fun onPreferenceClick(p0: android.preference.Preference?): Boolean {
@@ -196,6 +79,12 @@ class SettingsDialog(context: Context) : AlertDialog.Builder(context) {
 
         outDialog = run {
             val prefsFragment = PrefsFragment()
+            prefsFragment.arguments = Bundle().apply {
+                putString("access_token", accessToken)
+                putString("refresh_token", refreshToken)
+                putLong("expires", expires)
+            }
+
             act.fragmentManager.beginTransaction().add(prefsFragment, "settings").commit()
             act.fragmentManager.executePendingTransactions()
 
