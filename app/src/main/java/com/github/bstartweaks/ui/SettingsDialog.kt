@@ -14,8 +14,11 @@ import android.preference.PreferenceFragment
 import com.github.bstartweaks.BuildConfig
 import com.github.bstartweaks.R
 import com.github.bstartweaks.modulePrefs
-import com.github.kyuubiran.ezxhelper.init.InitFields.appContext
-import com.github.kyuubiran.ezxhelper.utils.*
+import com.github.kyuubiran.ezxhelper.EzXHelper.addModuleAssetPath
+import com.github.kyuubiran.ezxhelper.EzXHelper.appContext
+import com.github.kyuubiran.ezxhelper.Log
+import com.github.kyuubiran.ezxhelper.misc.Utils.restartHostApp
+import de.robv.android.xposed.XposedHelpers
 import java.text.SimpleDateFormat
 
 class SettingsDialog(context: Context, accessToken: String, refreshToken: String, expires: Long) :
@@ -30,7 +33,7 @@ class SettingsDialog(context: Context, accessToken: String, refreshToken: String
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             preferenceManager.sharedPreferencesName = PREFS_NAME
-            preferenceManager.putObject("mSharedPreferences", modulePrefs)
+            XposedHelpers.setObjectField(preferenceManager, "mSharedPreferences", modulePrefs)
             addPreferencesFromResource(R.xml.settings_dialog)
 
             findPreference("version").summary =
@@ -73,7 +76,7 @@ class SettingsDialog(context: Context, accessToken: String, refreshToken: String
     }
 
     init {
-        context.addModuleAssetPath()
+        addModuleAssetPath(context)
 
         val act = context as Activity
 

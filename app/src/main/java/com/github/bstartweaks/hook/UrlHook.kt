@@ -4,8 +4,8 @@ import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
 import com.github.bstartweaks.modulePrefs
-import com.github.kyuubiran.ezxhelper.utils.findAllMethods
-import com.github.kyuubiran.ezxhelper.utils.hookBefore
+import com.github.kyuubiran.ezxhelper.HookFactory.`-Static`.createHook
+import com.github.kyuubiran.ezxhelper.finders.MethodFinder
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -47,24 +47,31 @@ object UrlHook : BaseHook() {
 
     override fun init() {
         if (!modulePrefs.getBoolean("clean_urls", true)) return
-        findAllMethods(Intent::class.java) { name == "createChooser" }.hookBefore { param ->
-            val intent = param.args[0] as Intent
-            var extraText = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return@hookBefore
-            if (extraText.isBstarShortUrl()) {
-                extraText = getOriginalLocation(extraText)
+
+        MethodFinder.fromClass(Intent::class.java).filterByName("createChooser").first()
+            .createHook {
+                before { param ->
+                    val intent = param.args[0] as Intent
+                    var extraText = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return@before
+                    if (extraText.isBstarShortUrl()) {
+                        extraText = getOriginalLocation(extraText)
+                    }
+                    if (extraText.isBstarUrl()) {
+                        intent.putExtra(Intent.EXTRA_TEXT, clearExtraParams(extraText))
+                    }
+                }
             }
-            if (extraText.isBstarUrl()) {
-                intent.putExtra(Intent.EXTRA_TEXT, clearExtraParams(extraText))
+        MethodFinder.fromClass(ClipData::class.java).filterByName("newPlainText").first()
+            .createHook {
+                before { param ->
+                    var text = (param.args[1] as CharSequence).toString()
+                    if (text.isBstarShortUrl()) {
+                        text = getOriginalLocation(text)
+                    }
+                    if (text.isBstarUrl()) {
+                        param.args[1] = clearExtraParams(text)
+                    }
+                }
             }
-        }
-        findAllMethods(ClipData::class.java) { name == "newPlainText" }.hookBefore { param ->
-            var text = (param.args[1] as CharSequence).toString()
-            if (text.isBstarShortUrl()) {
-                text = getOriginalLocation(text)
-            }
-            if (text.isBstarUrl()) {
-                param.args[1] = clearExtraParams(text)
-            }
-        }
     }
 }

@@ -1,11 +1,9 @@
 package com.github.bstartweaks.ui
 
 import android.content.Context
-import com.github.kyuubiran.ezxhelper.utils.argTypes
-import com.github.kyuubiran.ezxhelper.utils.args
-import com.github.kyuubiran.ezxhelper.utils.invokeMethodAuto
-import com.github.kyuubiran.ezxhelper.utils.loadClass
-import com.github.kyuubiran.ezxhelper.utils.newInstance
+import com.github.kyuubiran.ezxhelper.ClassUtils.loadClass
+import com.github.kyuubiran.ezxhelper.finders.ConstructorFinder
+import de.robv.android.xposed.XposedHelpers
 import java.lang.reflect.Proxy
 
 class Preference(context: Context) {
@@ -14,30 +12,31 @@ class Preference(context: Context) {
         loadClass("androidx.preference.Preference\$OnPreferenceClickListener")
 
     private val preference =
-        preferenceClass.newInstance(args(context), argTypes(Context::class.java))
+        ConstructorFinder.fromClass(preferenceClass).filterByParamTypes(Context::class.java).first()
+            .newInstance(context)
 
     var title: CharSequence
         get() {
-            return preference?.invokeMethodAuto("getTitle") as CharSequence
+            return XposedHelpers.callMethod(preference, "getTitle") as CharSequence
         }
         set(title) {
-            preference?.invokeMethodAuto("setTitle", title)
+            XposedHelpers.callMethod(preference, "setTitle", title)
         }
 
     var summary: CharSequence
         get() {
-            return preference?.invokeMethodAuto("getSummary") as CharSequence
+            return XposedHelpers.callMethod(preference, "getSummary") as CharSequence
         }
         set(summary) {
-            preference?.invokeMethodAuto("setSummary", summary)
+            XposedHelpers.callMethod(preference, "setSummary", summary)
         }
 
     var key: CharSequence
         get() {
-            return preference?.invokeMethodAuto("getKey") as CharSequence
+            return XposedHelpers.callMethod(preference, "getKey") as CharSequence
         }
         set(key) {
-            preference?.invokeMethodAuto("setKey", key)
+            XposedHelpers.callMethod(preference, "setKey", key)
         }
 
     fun setOnPreferenceClickListener(onPreferenceClickListener: OnPreferenceClickListener) {
@@ -45,7 +44,7 @@ class Preference(context: Context) {
         val instance = Proxy.newProxyInstance(
             someInterface.classLoader, arrayOf(someInterface)
         ) { _, _, _ -> onPreferenceClickListener.onPreferenceClick(this@Preference) }
-        preference?.invokeMethodAuto("setOnPreferenceClickListener", instance)
+        XposedHelpers.callMethod(preference, "setOnPreferenceClickListener", instance)
     }
 
     fun build(): Any? {

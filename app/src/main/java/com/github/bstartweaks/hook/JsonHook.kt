@@ -1,13 +1,11 @@
 package com.github.bstartweaks.hook
 
 import com.github.bstartweaks.modulePrefs
-import com.github.kyuubiran.ezxhelper.utils.Log
-import com.github.kyuubiran.ezxhelper.utils.findMethod
-import com.github.kyuubiran.ezxhelper.utils.getObjectAs
-import com.github.kyuubiran.ezxhelper.utils.getObjectOrNull
-import com.github.kyuubiran.ezxhelper.utils.hookAfter
-import com.github.kyuubiran.ezxhelper.utils.loadClass
-import com.github.kyuubiran.ezxhelper.utils.putObject
+import com.github.kyuubiran.ezxhelper.ClassUtils.loadClass
+import com.github.kyuubiran.ezxhelper.HookFactory.`-Static`.createHook
+import com.github.kyuubiran.ezxhelper.Log
+import com.github.kyuubiran.ezxhelper.finders.MethodFinder
+import de.robv.android.xposed.XposedHelpers
 import java.lang.reflect.Type
 
 object JsonHook : BaseHook() {
@@ -17,21 +15,24 @@ object JsonHook : BaseHook() {
     override fun init() {
         val fastJsonClass = loadClass("com.alibaba.fastjson.JSON")
 
-        findMethod(fastJsonClass) {
-            name == "parseObject" && parameterTypes.size == 4 && parameterTypes[0] == String::class.java && parameterTypes[1] == Type::class.java && parameterTypes[2] == Int::class.javaPrimitiveType
-        }.hookAfter { param ->
-            val result = param.result ?: return@hookAfter
-            if (result.javaClass == bangumiApiResponseClass) {
-                val data = result.getObjectOrNull("data") ?: return@hookAfter
-                if (data.javaClass == bangumiUniformSeason) {
-                    if (!modulePrefs.getBoolean("force_allow_download", false)) return@hookAfter
-                    val allowDownload = data.getObjectAs<Boolean>("allowDownload")
-                    if (!allowDownload) {
-                        data.putObject("allowDownload", true)
-                        Log.toast("已强制启用下载")
+        MethodFinder.fromClass(fastJsonClass).filterByName("parseObject").filterByParamCount(4)
+            .filterByParamTypes { param ->
+                param[0] == String::class.java && param[1] == Type::class.java && param[2] == Int::class.javaPrimitiveType
+            }.first().createHook {
+                after { param ->
+                    val result = param.result ?: return@after
+                    if (result.javaClass == bangumiApiResponseClass) {
+                        val data = XposedHelpers.getObjectField(result, "data") ?: return@after
+                        if (data.javaClass == bangumiUniformSeason) {
+                            if (!modulePrefs.getBoolean("force_allow_download", false)) return@after
+                            val allowDownload = XposedHelpers.getBooleanField(data, "allowDownload")
+                            if (!allowDownload) {
+                                XposedHelpers.setBooleanField(data, "allowDownload", true)
+                                Log.toast("已强制启用下载")
+                            }
+                        }
                     }
                 }
             }
-        }
     }
 }

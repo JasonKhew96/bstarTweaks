@@ -3,7 +3,7 @@ package com.github.bstartweaks
 import android.content.Context
 import android.content.SharedPreferences
 import com.github.bstartweaks.ui.SettingsDialog
-import com.github.kyuubiran.ezxhelper.init.InitFields.appContext
+import com.github.kyuubiran.ezxhelper.EzXHelper.appContext
 
 @Suppress("DEPRECATION")
 val modulePrefs: SharedPreferences by lazy {

@@ -9,13 +9,13 @@ import com.github.bstartweaks.hook.JsonHook
 import com.github.bstartweaks.hook.ParamHook
 import com.github.bstartweaks.hook.SettingsHook
 import com.github.bstartweaks.hook.UrlHook
-import com.github.kyuubiran.ezxhelper.init.EzXHelperInit
-import com.github.kyuubiran.ezxhelper.init.InitFields.appContext
-import com.github.kyuubiran.ezxhelper.init.InitFields.modulePath
-import com.github.kyuubiran.ezxhelper.utils.Log
-import com.github.kyuubiran.ezxhelper.utils.Log.logexIfThrow
-import com.github.kyuubiran.ezxhelper.utils.findMethod
-import com.github.kyuubiran.ezxhelper.utils.hookAfter
+import com.github.kyuubiran.ezxhelper.EzXHelper
+import com.github.kyuubiran.ezxhelper.EzXHelper.appContext
+import com.github.kyuubiran.ezxhelper.EzXHelper.modulePath
+import com.github.kyuubiran.ezxhelper.HookFactory.`-Static`.createHook
+import com.github.kyuubiran.ezxhelper.Log
+import com.github.kyuubiran.ezxhelper.Log.logexIfThrow
+import com.github.kyuubiran.ezxhelper.finders.MethodFinder
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.IXposedHookZygoteInit
 import de.robv.android.xposed.callbacks.XC_LoadPackage
@@ -63,26 +63,26 @@ class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName == PACKAGE_NAME_HOOKED) {
             // Init EzXHelper
-            EzXHelperInit.initHandleLoadPackage(lpparam)
+            EzXHelper.initHandleLoadPackage(lpparam)
+            EzXHelper.setLogTag(TAG)
+            EzXHelper.setToastTag(TAG)
 
-            findMethod(Application::class.java) {
-                name == "attach" && parameterTypes.contentEquals(arrayOf(Context::class.java))
-            }.hookAfter { param ->
-                val context = param.args[0] as Context
-                EzXHelperInit.initAppContext(context)
-                EzXHelperInit.setEzClassLoader(appContext.classLoader)
+            MethodFinder.fromClass(Application::class.java).filterByName("attach")
+                .filterByParamTypes(Context::class.java).first().createHook {
+                    before { param ->
+                        val context = param.args[0] as Context
+                        EzXHelper.initAppContext(context)
 
-                // Init hooks
-                initHooks(JsonHook, ParamHook, SettingsHook, UrlHook, DebugHook, AdsHook)
-            }
+                        // Init hooks
+                        initHooks(JsonHook, ParamHook, SettingsHook, UrlHook, DebugHook, AdsHook)
+                    }
+                }
         }
     }
 
     // Optional
     override fun initZygote(startupParam: IXposedHookZygoteInit.StartupParam) {
-        EzXHelperInit.initZygote(startupParam)
-        EzXHelperInit.setLogTag(TAG)
-        EzXHelperInit.setToastTag(TAG)
+        EzXHelper.initZygote(startupParam)
     }
 
     private fun initHooks(vararg hook: BaseHook) {

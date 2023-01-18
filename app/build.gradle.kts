@@ -52,11 +52,15 @@ android {
             useLegacyPackaging = false
         }
     }
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
 }
 
 dependencies {
-    implementation("com.github.kyuubiran:EzXHelper:1.0.3")
-    implementation("com.github.LuckyPray:DexKit:4f04994690")
+    implementation("com.github.kyuubiran:EzXHelper:2.0.0-alpha04")
+    implementation("org.luckypray:DexKit:1.1.0-beta9")
     compileOnly("de.robv.android.xposed:api:82")
 }
 
@@ -84,3 +88,8 @@ tasks.whenTaskAdded {
         }
     }
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    kotlinOptions.freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
+}
+

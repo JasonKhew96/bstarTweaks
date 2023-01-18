@@ -11,17 +11,15 @@ import com.github.bstartweaks.MainHook.Companion.dexKit
 import com.github.bstartweaks.modulePrefs
 import com.github.bstartweaks.ui.Preference
 import com.github.bstartweaks.ui.SettingsDialog
-import com.github.kyuubiran.ezxhelper.init.InitFields
-import com.github.kyuubiran.ezxhelper.utils.Log
-import com.github.kyuubiran.ezxhelper.utils.findMethod
-import com.github.kyuubiran.ezxhelper.utils.getObjectOrNullAs
-import com.github.kyuubiran.ezxhelper.utils.hookAfter
-import com.github.kyuubiran.ezxhelper.utils.invokeMethod
-import com.github.kyuubiran.ezxhelper.utils.invokeMethodAs
-import com.github.kyuubiran.ezxhelper.utils.invokeMethodAuto
-import com.github.kyuubiran.ezxhelper.utils.isStatic
-import com.github.kyuubiran.ezxhelper.utils.loadClass
-import com.github.kyuubiran.ezxhelper.utils.loadClassOrNull
+import com.github.kyuubiran.ezxhelper.ClassUtils.loadClass
+import com.github.kyuubiran.ezxhelper.ClassUtils.loadClassOrNull
+import com.github.kyuubiran.ezxhelper.EzXHelper
+import com.github.kyuubiran.ezxhelper.HookFactory.`-Static`.createHook
+import com.github.kyuubiran.ezxhelper.Log
+import com.github.kyuubiran.ezxhelper.finders.FieldFinder
+import com.github.kyuubiran.ezxhelper.finders.MethodFinder
+import de.robv.android.xposed.XposedHelpers
+import io.luckypray.dexkit.annotations.DexKitExperimentalApi
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
@@ -48,27 +46,28 @@ object SettingsHook : BaseHook() {
     private const val HOOK_REFRESH_TOKEN_FIELD = "hook_refresh_token_field"
     private const val HOOK_EXPIRES_FIELD = "hook_expires_field"
 
+    @OptIn(DexKitExperimentalApi::class)
     private fun searchHook() {
-        val biliAccountClass = dexKit.findMethodUsingString(
-            usingString = "^BiliAccount$",
-            methodReturnType = Void.TYPE.name,
-            methodParamTypes = emptyArray(),
-        ).firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
+        val biliAccountClass = dexKit.findMethodUsingString {
+            usingString = "^BiliAccount$"
+            methodReturnType = Void.TYPE.name
+            methodParamTypes = emptyArray()
+        }.firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
             ?: throw ClassNotFoundException()
-        val biliPassportClass = dexKit.findMethodUsingString(
-            usingString = "^BiliPassport$",
-            methodParamTypes = emptyArray(),
-        ).firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
+        val biliPassportClass = dexKit.findMethodUsingString {
+            usingString = "^BiliPassport$"
+            methodParamTypes = emptyArray()
+        }.firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
             ?: throw ClassNotFoundException()
-        val passportControllerClass = dexKit.findMethodUsingString(
-            usingString = "^PassportController$",
-        ).firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
+        val passportControllerClass = dexKit.findMethodUsingString {
+            usingString = "^PassportController$"
+        }.firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
             ?: throw ClassNotFoundException()
-        val accessTokenClass = dexKit.findMethodUsingString(
-            usingString = "^AccessToken{mExpiresIn=$",
-            methodName = "toString",
-            methodReturnType = String::class.java.name,
-        ).firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
+        val accessTokenClass = dexKit.findMethodUsingString {
+            usingString = "^AccessToken{mExpiresIn=$"
+            methodName = "toString"
+            methodReturnType = String::class.java.name
+        }.firstNotNullOfOrNull { loadClassOrNull(it.declaringClassName) }
             ?: throw ClassNotFoundException()
 
         biliAccountClassName = biliAccountClass.name
@@ -77,27 +76,27 @@ object SettingsHook : BaseHook() {
         accessTokenClassName = accessTokenClass.name
 
         val jsonFieldClass = loadClass("com.alibaba.fastjson.annotation.JSONField")
-        val accessTokenField = dexKit.findFieldUsingAnnotation(
-            annotationClass = jsonFieldClass.name,
-            annotationUsingString = "access_token",
-            fieldDeclareClass = accessTokenClass.name,
-            fieldType = String::class.java.name,
-        ).firstNotNullOfOrNull { it.getFieldInstance(InitFields.ezXClassLoader) as Field }
+        val accessTokenField = dexKit.findFieldUsingAnnotation {
+            annotationClass = jsonFieldClass.name
+            annotationUsingString = "access_token"
+            fieldDeclareClass = accessTokenClass.name
+            fieldType = String::class.java.name
+        }.firstNotNullOfOrNull { it.getFieldInstance(EzXHelper.classLoader) as Field }
             ?: throw NoSuchFieldError()
-        val refreshTokenField = dexKit.findFieldUsingAnnotation(
-            annotationClass = jsonFieldClass.name,
-            annotationUsingString = "refresh_token",
-            fieldDeclareClass = accessTokenClass.name,
-            fieldType = String::class.java.name,
-        ).firstNotNullOfOrNull { it.getFieldInstance(InitFields.ezXClassLoader) as Field }
+        val refreshTokenField = dexKit.findFieldUsingAnnotation {
+            annotationClass = jsonFieldClass.name
+            annotationUsingString = "refresh_token"
+            fieldDeclareClass = accessTokenClass.name
+            fieldType = String::class.java.name
+        }.firstNotNullOfOrNull { it.getFieldInstance(EzXHelper.classLoader) as Field }
             ?: throw NoSuchFieldError()
-        val expiresField = dexKit.findFieldUsingAnnotation(
-            annotationClass = jsonFieldClass.name,
-            annotationUsingString = "expires",
-            fieldDeclareClass = accessTokenClass.name,
-            fieldType = Long::class.java.name,
-        ).lastOrNull()?.let {
-            it.getFieldInstance(InitFields.ezXClassLoader) as Field
+        val expiresField = dexKit.findFieldUsingAnnotation {
+            annotationClass = jsonFieldClass.name
+            annotationUsingString = "expires"
+            fieldDeclareClass = accessTokenClass.name
+            fieldType = Long::class.java.name
+        }.lastOrNull()?.let {
+            it.getFieldInstance(EzXHelper.classLoader) as Field
         } ?: throw NoSuchFieldError()
 
         accessTokenFieldName = accessTokenField.name
@@ -150,75 +149,85 @@ object SettingsHook : BaseHook() {
             val passportControllerClass = loadClass(passportControllerClassName)
             val accessTokenClass = loadClass(accessTokenClassName)
 
-            biliAccountClassMethod = biliAccountClass.declaredMethods.firstOrNull {
-                it.isStatic && it.parameterTypes.size == 1 && it.parameterTypes[0] == Context::class.java && it.returnType == it.declaringClass
-            } ?: throw NoSuchMethodError()
 
-            biliPassportClassField = biliAccountClass.declaredFields.firstOrNull {
-                it.type == biliPassportClass
-            } ?: throw NoSuchFieldError()
+            biliAccountClassMethod = MethodFinder.fromClass(biliAccountClass).filterStatic()
+                .filterByParamTypes(Context::class.java).filterByReturnType(biliAccountClass)
+                .first()
 
-            passportControllerClassField = biliPassportClass.declaredFields.firstOrNull {
-                it.type == passportControllerClass
-            } ?: throw NoSuchFieldError()
+            biliPassportClassField =
+                FieldFinder.fromClass(biliAccountClass).filterByType(biliPassportClass).first()
 
-            accessTokenClassField = passportControllerClass.declaredFields.firstOrNull {
-                it.type == accessTokenClass
-            } ?: throw NoSuchFieldError()
+            passportControllerClassField =
+                FieldFinder.fromClass(biliPassportClass).filterByType(passportControllerClass)
+                    .first()
+
+            accessTokenClassField =
+                FieldFinder.fromClass(passportControllerClass).filterByType(accessTokenClass)
+                    .first()
 
             isTokenClassLoaded = true
         } catch (e: Throwable) {
             Log.d(e)
         }
 
-        findMethod(helpFragmentClass) {
-            name == "onCreateView" && parameterTypes.size == 3 && parameterTypes[0] == LayoutInflater::class.java && parameterTypes[1] == ViewGroup::class.java && parameterTypes[2] == Bundle::class.java
-        }.hookAfter { param ->
-            val activity = param.thisObject.invokeMethodAs<Activity>("getActivity")
+        MethodFinder.fromClass(helpFragmentClass).filterByName("onCreateView").filterByParamTypes(
+            LayoutInflater::class.java, ViewGroup::class.java, Bundle::class.java
+        ).first().createHook {
+            after { param ->
+                val activity = XposedHelpers.callMethod(param.thisObject, "getActivity") as Activity
 
-            val preferenceScreen = param.thisObject.invokeMethod("getPreferenceScreen")
+                val preferenceScreen =
+                    XposedHelpers.callMethod(param.thisObject, "getPreferenceScreen")
 
-            if (preferenceScreen?.invokeMethodAuto("findPreference", "bstar_tweaks") != null) {
-                return@hookAfter
-            }
+                if (XposedHelpers.callMethod(
+                        preferenceScreen, "findPreference", "bstar_tweaks"
+                    ) != null
+                ) {
+                    return@after
+                }
 
-            val hookPreference = Preference(activity as Context).apply {
-                title = "bstar 工具箱 ${BuildConfig.VERSION_NAME}"
-                summary = "@JasonKhew96"
-                key = "bstar_tweaks"
-                setOnPreferenceClickListener(object : Preference.OnPreferenceClickListener {
-                    override fun onPreferenceClick(preference: Preference): Boolean {
+                val hookPreference = Preference(activity as Context).apply {
+                    title = "bstar 工具箱 ${BuildConfig.VERSION_NAME}"
+                    summary = "@JasonKhew96"
+                    key = "bstar_tweaks"
+                    setOnPreferenceClickListener(object : Preference.OnPreferenceClickListener {
+                        override fun onPreferenceClick(preference: Preference): Boolean {
 
-                        var accessToken = ""
-                        var refreshToken = ""
-                        var expires = 0L
-                        if (isTokenClassLoaded) {
-                            val biliAccountObj = biliAccountClassMethod?.invoke(null, activity)
-                            val biliPassportObj = biliPassportClassField?.get(biliAccountObj)
-                            val passportControllerObj =
-                                passportControllerClassField?.get(biliPassportObj)
-                            val accessTokenObj = accessTokenClassField?.get(passportControllerObj)
+                            var accessToken = ""
+                            var refreshToken = ""
+                            var expires = 0L
+                            if (isTokenClassLoaded) {
+                                val biliAccountObj = biliAccountClassMethod?.invoke(null, activity)
+                                val biliPassportObj = biliPassportClassField?.get(biliAccountObj)
+                                val passportControllerObj =
+                                    passportControllerClassField?.get(biliPassportObj)
+                                val accessTokenObj =
+                                    accessTokenClassField?.get(passportControllerObj)
 
-                            Log.d("accessTokenObj: $accessTokenObj")
+                                Log.d("accessTokenObj: $accessTokenObj")
 
-                            accessToken =
-                                accessTokenObj?.getObjectOrNullAs<String>(accessTokenFieldName)
-                                    ?: ""
-                            refreshToken =
-                                accessTokenObj?.getObjectOrNullAs<String>(refreshTokenFieldName)
-                                    ?: ""
-                            expires =
-                                accessTokenObj?.getObjectOrNullAs<Long>(expiresFieldName) ?: 0L
+                                XposedHelpers.getObjectField(accessTokenObj, accessTokenFieldName)
+                                    ?.let {
+                                        accessToken = it as String
+                                    }
+                                XposedHelpers.getObjectField(accessTokenObj, refreshTokenFieldName)
+                                    ?.let {
+                                        refreshToken = it as String
+                                    }
+                                XposedHelpers.getObjectField(accessTokenObj, expiresFieldName)
+                                    ?.let {
+                                        expires = it as Long
+                                    }
+                            }
+
+                            SettingsDialog(activity, accessToken, refreshToken, expires)
+                            return true
                         }
+                    })
+                }
 
-                        SettingsDialog(activity, accessToken, refreshToken, expires)
-                        return true
-                    }
-                })
+                XposedHelpers.callMethod(preferenceScreen, "addPreference", hookPreference.build())
             }
-
-            preferenceScreen?.invokeMethodAuto("addPreference", hookPreference.build())
         }
-
     }
 }
