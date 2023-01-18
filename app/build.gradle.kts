@@ -11,7 +11,6 @@ val versionBuild: Int = 0
 android {
     compileSdk = 33
     buildToolsVersion = "33.0.0"
-    ndkVersion = "24.0.8215888"
     namespace = "com.github.bstartweaks"
 
     defaultConfig {
@@ -29,8 +28,7 @@ android {
             isShrinkResources = true
             isMinifyEnabled = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
     }
