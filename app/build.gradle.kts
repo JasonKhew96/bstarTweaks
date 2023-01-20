@@ -58,7 +58,7 @@ android {
 
 dependencies {
     implementation("com.github.kyuubiran:EzXHelper:2.0.0-alpha04")
-    implementation("org.luckypray:DexKit:1.1.0-beta9")
+    implementation("org.luckypray:DexKit:1.1.0")
     compileOnly("de.robv.android.xposed:api:82")
 }
 
